@@ -13,3 +13,41 @@ body {
 .card {
   @apply rounded-2xl border border-slate-800/70 bg-slate-900/80 shadow-lg shadow-black/40 backdrop-blur-sm;
 }
+
+
+
+.sp-force-hide {
+  display: none;
+}
+
+.sp-form[sp-id="252239"] {
+  @apply card w-full max-w-3xl mx-auto border-slate-800/80 bg-slate-900/90;
+}
+
+.sp-form[sp-id="252239"] .sp-form-fields-wrapper {
+  @apply flex flex-col gap-4 px-4 py-4 sm:px-6 sm:py-5;
+}
+
+.sp-form[sp-id="252239"] .sp-element-container {
+  @apply flex flex-col gap-3 sm:flex-row sm:items-end;
+}
+
+.sp-form[sp-id="252239"] .sp-field {
+  @apply w-full;
+}
+
+.sp-form[sp-id="252239"] .sp-control-label {
+  @apply block text-xs font-medium text-slate-300 mb-1;
+}
+
+.sp-form[sp-id="252239"] .sp-form-control {
+  @apply w-full rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none focus:border-samsungBlue focus:ring-2 focus:ring-samsungBlue/40;
+}
+
+.sp-form[sp-id="252239"] .sp-button-container {
+  @apply w-full sm:w-auto flex justify-center sm:justify-end;
+}
+
+.sp-form[sp-id="252239"] .sp-button {
+  @apply btn-primary px-6 py-2 text-sm whitespace-nowrap;
+}

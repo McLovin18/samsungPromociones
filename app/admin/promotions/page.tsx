@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { addDoc, collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface Place {
@@ -15,7 +15,8 @@ interface Promotion {
   id: string;
   title: string;
   description: string;
-  price: number;
+  price: number; // precio promocional
+  originalPrice?: number | null; // precio antes de la promo
   imageUrl: string;
 }
 
@@ -30,8 +31,10 @@ export default function AdminPromotionsPage() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState<string>("");
+  const [previousPrice, setPreviousPrice] = useState<string>("");
+  const [price, setPrice] = useState<string>(""); // precio promocional
   const [imageUrl, setImageUrl] = useState("");
+  const [editingPromotionId, setEditingPromotionId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onSnapshot(query(collection(db, "places"), orderBy("name")), (snap) => {
@@ -66,29 +69,78 @@ export default function AdminPromotionsPage() {
 
   const handleOpenModal = (place: Place) => {
     setSelectedPlace(place);
+    // al cambiar de lugar limpiamos estado de edición
+    setEditingPromotionId(null);
+    setTitle("");
+    setDescription("");
+    setPreviousPrice("");
+    setPrice("");
+    setImageUrl("");
     setPromoModalOpen(true);
   };
 
   const handleCreatePromotion = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedPlace) return;
+    const numericPreviousPrice = Number(previousPrice.replace(",", "."));
     const numericPrice = Number(price.replace(",", "."));
-    await addDoc(collection(db, "promotions"), {
+
+    const payload = {
       title: title.trim(),
       description: description.trim(),
       price: numericPrice,
+      originalPrice: Number.isNaN(numericPreviousPrice) ? null : numericPreviousPrice,
       imageUrl: imageUrl.trim(),
       placeId: selectedPlace.id,
       placeName: selectedPlace.name,
       cityId: selectedPlace.cityId,
       cityName: selectedPlace.cityName,
       active: true,
-      createdAt: new Date(),
-    });
+    };
+
+    if (editingPromotionId) {
+      await updateDoc(doc(db, "promotions", editingPromotionId), payload);
+    } else {
+      await addDoc(collection(db, "promotions"), {
+        ...payload,
+        createdAt: new Date(),
+      });
+    }
     setTitle("");
     setDescription("");
+    setPreviousPrice("");
     setPrice("");
     setImageUrl("");
+    setEditingPromotionId(null);
+  };
+
+  const handleEditPromotion = (promo: Promotion) => {
+    setEditingPromotionId(promo.id);
+    setTitle(promo.title);
+    setDescription(promo.description);
+    setPreviousPrice(
+      typeof promo.originalPrice === "number"
+        ? promo.originalPrice.toString()
+        : ""
+    );
+    setPrice(promo.price.toString());
+    setImageUrl(promo.imageUrl || "");
+  };
+
+  const handleDeletePromotion = async (promo: Promotion) => {
+    const confirmed = window.confirm(
+      `¿Eliminar la promoción "${promo.title}"? Esta acción no se puede deshacer.`
+    );
+    if (!confirmed) return;
+    await deleteDoc(doc(db, "promotions", promo.id));
+    if (editingPromotionId === promo.id) {
+      setEditingPromotionId(null);
+      setTitle("");
+      setDescription("");
+      setPreviousPrice("");
+      setPrice("");
+      setImageUrl("");
+    }
   };
 
   return (
@@ -154,14 +206,19 @@ export default function AdminPromotionsPage() {
           }}
           promotions={promotions}
           onSubmit={handleCreatePromotion}
+          onEdit={handleEditPromotion}
+          onDelete={handleDeletePromotion}
           title={title}
           setTitle={setTitle}
           description={description}
           setDescription={setDescription}
+          previousPrice={previousPrice}
+          setPreviousPrice={setPreviousPrice}
           price={price}
           setPrice={setPrice}
           imageUrl={imageUrl}
           setImageUrl={setImageUrl}
+          editingPromotionId={editingPromotionId}
         />
       )}
     </div>
@@ -177,10 +234,15 @@ function PromoModal({
   setTitle,
   description,
   setDescription,
+  previousPrice,
+  setPreviousPrice,
   price,
   setPrice,
   imageUrl,
   setImageUrl,
+  editingPromotionId,
+  onEdit,
+  onDelete,
 }: {
   place: Place;
   onClose: () => void;
@@ -190,10 +252,15 @@ function PromoModal({
   setTitle: (v: string) => void;
   description: string;
   setDescription: (v: string) => void;
+  previousPrice: string;
+  setPreviousPrice: (v: string) => void;
   price: string;
   setPrice: (v: string) => void;
   imageUrl: string;
   setImageUrl: (v: string) => void;
+  editingPromotionId: string | null;
+  onEdit: (promo: Promotion) => void;
+  onDelete: (promo: Promotion) => void;
 }) {
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4">
@@ -242,7 +309,18 @@ function PromoModal({
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-slate-700">Precio / valor referencia</label>
+                <label className="text-[11px] font-medium text-slate-700">Precio anterior</label>
+                <input
+                  type="text"
+                  value={previousPrice}
+                  onChange={(e) => setPreviousPrice(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="899.99"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-slate-700">Precio promocional</label>
                 <input
                   type="text"
                   value={price}
@@ -264,7 +342,7 @@ function PromoModal({
               </div>
             </div>
             <button type="submit" className="btn-primary mt-1 w-full justify-center text-xs">
-              Guardar promoción
+              {editingPromotionId ? "Actualizar promoción" : "Guardar promoción"}
             </button>
             <p className="text-[10px] text-slate-500">
               Puedes crear tantas promociones como necesites para este punto. Se mostrarán como cards informativas al
@@ -282,7 +360,11 @@ function PromoModal({
               <p className="px-1 text-[11px] text-slate-500">Aún no hay promociones para este punto.</p>
             )}
             {promotions.map((promo) => (
-              <article key={promo.id} className="card flex gap-3 p-2">
+              <article
+                key={promo.id}
+                className="card flex gap-3 p-2 cursor-pointer hover:border-samsungBlue/60"
+                onClick={() => onEdit(promo)}
+              >
                 <div className="hidden h-16 w-16 flex-none overflow-hidden rounded-lg bg-slate-200 sm:block">
                   {promo.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -296,10 +378,31 @@ function PromoModal({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold text-slate-50">{promo.title}</p>
                   <p className="line-clamp-2 text-[11px] text-slate-200">{promo.description}</p>
-                  <p className="mt-1 text-xs font-semibold text-samsungBlue">
-                    ${promo.price.toLocaleString("es-EC", { minimumFractionDigits: 2 })}
-                  </p>
+                  <div className="mt-1 flex items-baseline gap-2 text-xs">
+                    {typeof promo.originalPrice === "number" && (
+                      <span className="text-[11px] text-slate-400 line-through">
+                        $
+                        {promo.originalPrice.toLocaleString("es-EC", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    )}
+                    <span className="text-xs font-semibold text-samsungBlue">
+                      $
+                      {promo.price.toLocaleString("es-EC", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(promo);
+                  }}
+                  className="self-start rounded-full border border-red-300 px-2 py-0.5 text-[10px] text-red-500 hover:bg-red-50"
+                >
+                  Eliminar
+                </button>
               </article>
             ))}
           </div>

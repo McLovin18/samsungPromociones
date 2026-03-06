@@ -1,8 +1,9 @@
 "use client";
-
+import NewsletterSection from "./components/NewsletterSection";
 import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import PromoCarousel from "./components/PromoCarousel";
 
 interface City {
   id: string;
@@ -25,7 +26,8 @@ interface Promotion {
   id: string;
   title: string;
   description: string;
-  price: number;
+  price: number; // precio promocional
+  originalPrice?: number | null; // precio antes de la promo
   imageUrl: string;
 }
 
@@ -127,8 +129,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-10">
-
-
       <section className="mx-auto max-w-xl rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
         <div className="space-y-3 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
@@ -229,12 +229,10 @@ export default function HomePage() {
       >
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-              Promociones disponibles
-            </p>
+
             <p className="text-base text-slate-200 flex flex-wrap items-center gap-2">
               <span className="font-medium">
-                {selectedCity ? selectedCity.name : "Selecciona una ciudad"}
+                {selectedCity ? selectedCity.name : "Selecciona una ciudad para ver sus promociones"}
               </span>
               {selectedPlace && (
                 <>
@@ -244,8 +242,9 @@ export default function HomePage() {
                       href={selectedPlace.locationUrl || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center rounded-full border border-samsungBlue/40 px-2.5 py-0.5 text-[11px] font-medium text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+                      className="inline-flex items-center gap-1 rounded-full border border-samsungBlue/20 bg-white/80 px-2.5 py-0.5 text-[11px] font-medium text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
                     >
+                      <CompassIcon className="h-4 w-4 text-samsungBlue" />
                       Ubicación
                     </a>
                   )}
@@ -264,7 +263,6 @@ export default function HomePage() {
           )}
           {!selectedPlaceId && (
             <p className="text-sm text-slate-400">
-              Elige primero un lugar para ver las promociones.
             </p>
           )}
 
@@ -285,12 +283,26 @@ export default function HomePage() {
                   {promo.title}
                 </h3>
                 <p className="text-sm text-slate-300 line-clamp-3">{promo.description}</p>
-                <p className="pt-1 text-base font-semibold text-samsungBlue">
-                  ${promo.price.toLocaleString("es-EC", {
-                    style: "currency",
-                    currency: "USD",
-                  }).replace("US$", "")}
-                </p>
+                <div className="pt-1 flex items-baseline gap-2">
+                  {typeof promo.originalPrice === "number" && (
+                    <span className="text-sm text-slate-400 line-through">
+                      ${promo.originalPrice
+                        .toLocaleString("es-EC", {
+                          style: "currency",
+                          currency: "USD",
+                        })
+                        .replace("US$", "")}
+                    </span>
+                  )}
+                  <span className="text-xl font-semibold text-white">
+                    ${promo.price
+                      .toLocaleString("es-EC", {
+                        style: "currency",
+                        currency: "USD",
+                      })
+                      .replace("US$", "")}
+                  </span>
+                </div>
                 <p className="text-xs text-slate-400">
                   Promoción informativa. Presenta esta oferta en el punto de venta.
                 </p>
@@ -303,28 +315,53 @@ export default function HomePage() {
           <div className="mt-3 border-t border-slate-800/70 pt-3 text-xs text-slate-300 flex flex-wrap items-center gap-3">
             <span className="text-[11px] text-slate-400">Contacto del punto de venta</span>
             <div className="flex flex-wrap gap-2">
+              {/* Botón Maps/brújula */}
+              {selectedPlace.locationUrl && (
+                <a
+                  href={selectedPlace.locationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/30 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+                >
+                  <CompassIcon className="h-5 w-5" />
+                </a>
+              )}
+              {/* Botón llamada */}
+              {selectedPlace.phone && (
+                <a
+                  href={`tel:${selectedPlace.phone}`}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-sky-400/60 bg-white/80 text-sky-500 hover:bg-sky-500 hover:text-white transition"
+                >
+                  <CallIcon className="h-5 w-5" />
+                </a>
+              )}
+              {/* Botón WhatsApp/chat */}
               {selectedPlace.phone && (
                 <a
                   href={getWhatsAppUrl(selectedPlace.phone)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/60 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/40 hover:text-white transition"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/60 bg-white/80 text-emerald-500 hover:bg-emerald-500 hover:text-white transition"
                 >
-                  <PhoneIcon className="h-5 w-5" />
+                  <ChatIcon className="h-5 w-5" />
                 </a>
               )}
+              {/* Botón correo */}
               {selectedPlace.email && (
                 <a
                   href={`mailto:${selectedPlace.email}`}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/60 bg-samsungBlue/10 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/60 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
                 >
                   <MailIcon className="h-5 w-5" />
                 </a>
               )}
             </div>
           </div>
+
         )}
       </section>
+      <PromoCarousel />
+      <NewsletterSection/>
     </div>
   );
 }
@@ -369,6 +406,46 @@ function MailIcon(props: React.SVGProps<SVGSVGElement>) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+// Icono Google Maps oficial
+function GoogleMapsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="12" cy="12" r="10" fill="#fff" />
+      <path d="M12 2C7.03 2 3 6.03 3 11c0 4.97 4.03 9 9 9s9-4.03 9-9c0-4.97-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7 0-3.86 3.14-7 7-7 3.86 0 7 3.14 7 7 0 3.86-3.14 7-7 7z" fill="#4285F4" />
+      <path d="M12 6.5c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5S10.62 8.5 12 8.5s2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#EA4335" />
+    </svg>
+  );
+}
+
+// Icono teléfono oficial
+function PhoneOfficialIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.68 14.91 16.08 14.82 16.43 14.94C17.55 15.31 18.75 15.51 20 15.51C20.55 15.51 21 15.96 21 16.51V20C21 20.55 20.55 21 20 21C11.72 21 5 14.28 5 6C5 5.45 5.45 5 6 5H9.5C10.05 5 10.5 5.45 10.5 6C10.5 7.25 10.7 8.45 11.07 9.57C11.18 9.92 11.1 10.32 10.82 10.6L8.62 12.8L6.62 10.79Z" fill="#1976D2" />
+    </svg>
+  );
+}
+
+// Icono WhatsApp oficial
+function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="12" cy="12" r="10" fill="#25D366" />
+      <path d="M17.472 14.382c-.297-.149-1.758-.868-2.031-.967-.273-.099-.472-.148-.671.149-.198.297-.767.967-.941 1.164-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.447-.521.149-.173.198-.297.298-.495.099-.198.05-.372-.025-.521-.074-.149-.671-1.611-.921-2.207-.242-.579-.487-.5-.671-.51-.173-.009-.372-.011-.571-.011-.198 0-.521.074-.793.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.066 2.875 1.216 3.074.149.198 2.099 3.209 5.077 4.504.711.306 1.263.489 1.697.626.713.227 1.36.195 1.872.118.571-.085 1.758-.719 2.008-1.413.25-.694.25-1.289.173-1.413-.074-.124-.272-.198-.569-.347z" fill="#fff" />
+    </svg>
+  );
+}
+
+// Icono email oficial
+function MailOfficialIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" fill="#EA4335" />
+      <path d="M5 7L11.4 11.2C11.76 11.44 12.24 11.44 12.6 11.2L19 7" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
