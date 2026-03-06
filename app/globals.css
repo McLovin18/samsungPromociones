@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-slate-950 text-slate-50 antialiased;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-full bg-samsungBlue px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-samsungBlue/40 hover:bg-blue-800 transition;
+}
+
+.card {
+  @apply rounded-2xl border border-slate-800/70 bg-slate-900/80 shadow-lg shadow-black/40 backdrop-blur-sm;
+}
