@@ -3,8 +3,57 @@ import "./globals.css";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Promociones Samsung Ecuador",
-  description: "Landing de promociones por ciudad y punto de venta",
+  title: "Promociones Samsung Ecuador | Ofertas Exclusivas",
+  description: "Descubre las mejores promociones y ofertas exclusivas de Samsung en Ecuador. Encuentra smartphones, tablets, televisores y más con descuentos increíbles en tu ciudad.",
+  keywords: ["Samsung", "Ecuador", "promociones", "ofertas", "smartphones", "Galaxy", "descuentos", "electrónica"],
+  authors: [{ name: "Samsung Ecuador" }],
+  creator: "Samsung Ecuador",
+  publisher: "Samsung Ecuador",
+  metadataBase: new URL("https://www.samsungecuador.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_EC",
+    url: "https://www.samsungecuador.com",
+    siteName: "Samsung Ecuador Promociones",
+    title: "Promociones Samsung Ecuador | Ofertas Exclusivas",
+    description: "Descubre las mejores promociones y ofertas exclusivas de Samsung en Ecuador. Smartphones, tablets, televisores y más con descuentos increíbles.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Samsung Ecuador - Promociones y Ofertas Exclusivas",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Promociones Samsung Ecuador | Ofertas Exclusivas",
+    description: "Descubre las mejores promociones y ofertas exclusivas de Samsung en Ecuador. Smartphones, tablets, televisores y más.",
+    images: ["/og-image.jpeg"],
+    creator: "@SamsungEcuador",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: [
+      { url: "/og-image.jpeg", type: "image/jpeg" },
+    ],
+    apple: "/og-image.jpeg",
+    shortcut: "/og-image.jpeg",
+  },
 };
 
 export default function RootLayout({

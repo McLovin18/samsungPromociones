@@ -290,8 +290,8 @@ export default function HomePage() {
             >
               Descargar imagen
             </button>
-            <p className="mt-3 text-xs text-slate-300 text-center leading-relaxed max-w-[180px]">
-              Acércate al local que seleccionaste con el cupón que descargaste para obtener tu descuento.
+            <p className="mt-8 text-xs text-slate-300 text-center leading-relaxed max-w-[180px]">
+              Presenta el cupón que descargaste en el local que seleccionaste para obtener tu descuento.
             </p>
           </div>
         )}
@@ -364,9 +364,9 @@ export default function HomePage() {
 
       {/* Contacto del punto de venta */}
       {selectedPlace && (selectedPlace.phone || selectedPlace.email) && (
-        <div className="mt-4 border-t border-slate-800/70 pt-4 flex flex-col gap-3">
+        <div className="mt-4 border-t border-slate-800/70 pt-4 flex flex-col items-center xl:items-start gap-3">
           <span className="text-xs font-medium text-slate-400 tracking-wide uppercase">Contacto del punto de venta</span>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center xl:justify-start gap-3">
             {selectedPlace.locationUrl && (
               <a
                 href={selectedPlace.locationUrl}
@@ -495,25 +495,26 @@ export default function HomePage() {
         function handleSocialShare(network: string, place: Place | null) {
           if (!place) return;
           let url = "";
-          const text = encodeURIComponent(`¡Visita ${place.name} en ${place.cityName}!`);
+          const text = encodeURIComponent(`¡Descubre las mejores promociones Samsung en ${place.name}, ${place.cityName}!`);
+          const shareUrl = "https://www.samsungecuador.com";
           switch (network) {
             case "facebook":
-              url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
               break;
             case "instagram":
               alert("Instagram no permite compartir directamente desde web. Copia el texto y publícalo en la app.");
               return;
             case "twitter":
-              url = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              url = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl)}`;
               break;
             case "whatsapp":
-              url = `https://wa.me/?text=${text}%20${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              url = `https://wa.me/?text=${text}%20${encodeURIComponent(shareUrl)}`;
               break;
             case "linkedin":
-              url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
               break;
             case "telegram":
-              url = `https://t.me/share/url?url=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}&text=${text}`;
+              url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${text}`;
               break;
             default:
               return;
