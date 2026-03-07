@@ -32,6 +32,7 @@ interface Promotion {
 }
 
 export default function HomePage() {
+    const [showShareModal, setShowShareModal] = useState(false);
   const [cities, setCities] = useState<City[]>([]);
   const [places, setPlaces] = useState<Place[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
@@ -128,149 +129,239 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-10">
-      <section className="mx-auto max-w-xl rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
-        <div className="space-y-3 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
-            Samsung Ecuador
-          </p>
-          <p className="text-lg font-semibold text-white">Selecciona tu ciudad</p>
-          <div className="space-y-3">
-            <select
-              className="w-full rounded-lg border border-slate-700 bg-white px-3 py-2.5 text-base text-slate-900 outline-none ring-samsungBlue/30 focus:border-samsungBlue focus:ring-2"
-              value={selectedCityId}
-              onChange={(e) => setSelectedCityId(e.target.value)}
-            >
-              <option value="">Selecciona tu ciudad</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}
-                </option>
-              ))}
-            </select>
-            {loadingCities && <p className="text-sm text-slate-300">Cargando ciudades…</p>}
-            <button
-              type="button"
-              className="btn-primary w-full justify-center text-sm"
-              disabled={!selectedCityId}
-            >
-              Buscar promociones
-            </button>
-          </div>
+  <div className="space-y-10 w-full">
+    {/* Selección de ciudad */}
+    <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
+      <div className="space-y-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+          Samsung Ecuador
+        </p>
+        <p className="text-lg font-semibold text-white">Selecciona tu ciudad</p>
+        <div className="space-y-3">
+          <select
+            className="w-full rounded-lg border border-slate-700 bg-white px-3 py-2.5 text-base text-slate-900 outline-none ring-samsungBlue/30 focus:border-samsungBlue focus:ring-2"
+            value={selectedCityId}
+            onChange={(e) => setSelectedCityId(e.target.value)}
+          >
+            <option value="">Selecciona tu ciudad</option>
+            {cities.map((city) => (
+              <option key={city.id} value={city.id}>
+                {city.name}
+              </option>
+            ))}
+          </select>
+          {loadingCities && <p className="text-sm text-slate-300">Cargando ciudades…</p>}
+          <button
+            type="button"
+            className="btn-primary w-full justify-center text-sm"
+            disabled={!selectedCityId}
+          >
+            Buscar promociones
+          </button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section className="space-y-4 rounded-3xl bg-slate-950/60 p-4 sm:p-6">
-        <div className="text-center space-y-1">
-          <h2 className="text-lg font-semibold text-slate-50">
-            Elige tu centro comercial más cercano
-          </h2>
-          <p className="text-sm text-slate-300">
-            Selecciona el local que prefieres visitar:
-          </p>
+    {/* Selección de lugar */}
+    <section className="space-y-4 rounded-3xl bg-slate-950/60 p-4 sm:p-6">
+      <div className="text-center space-y-1">
+        <h2 className="text-lg font-semibold text-slate-50">
+          Elige tu centro comercial más cercano
+        </h2>
+        <p className="text-sm text-slate-300">
+          Selecciona el local que prefieres visitar:
+        </p>
+      </div>
+
+      {!selectedCityId && (
+        <p className="text-center text-sm text-slate-400">
+          Primero selecciona una ciudad para ver los centros comerciales disponibles.
+        </p>
+      )}
+
+      {selectedCityId && !loadingPlaces && places.length === 0 && (
+        <p className="text-center text-sm text-slate-400">
+          Por ahora no hay centros comerciales configurados para esta ciudad.
+        </p>
+      )}
+
+      {selectedCityId && places.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {places.map((place) => (
+            <article
+              key={place.id}
+              className="flex flex-col justify-between rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 shadow-md shadow-black/30"
+            >
+              <header className="border-b border-slate-700 pb-2 text-center">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-50">
+                  {place.name}
+                </h3>
+              </header>
+              <div className="space-y-1.5 py-3 text-sm text-slate-200">
+                <p>• {place.storeName || "Samsung Store"}</p>
+                {place.address && <p className="italic">• {place.address}</p>}
+              </div>
+              <div className="pt-1 pb-1 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPlaceId(place.id);
+                    if (typeof document !== "undefined") {
+                      const el = document.getElementById("promociones");
+                      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  }}
+                  className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-sm font-semibold shadow-md transition ${
+                    selectedPlaceId === place.id
+                      ? "bg-samsungBlue text-white shadow-samsungBlue/40"
+                      : "bg-samsungBlue/90 text-white hover:bg-samsungBlue"
+                  }`}
+                >
+                  Ver promociones
+                </button>
+              </div>
+            </article>
+          ))}
         </div>
+      )}
+    </section>
 
-        {!selectedCityId && (
-          <p className="text-center text-sm text-slate-400">
-            Primero selecciona una ciudad para ver los centros comerciales disponibles.
+    {/* Promociones */}
+    <section
+        id="promociones"
+        className="space-y-6 w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-2xl shadow-black/40 sm:p-6"
+      >
+        {/* Sección QR para validar promoción */}
+        <div className="flex flex-col items-center justify-center mb-4">
+          {/* QR y botón compartir */}
+          <img
+            src="/imagenPromocion.jpeg"
+            alt="Código QR para validar promoción"
+            className="w-32 h-32 rounded-lg border border-slate-700 bg-white p-2 shadow-md cursor-pointer"
+            id="promo-qr-img"
+            onClick={() => setShowShareModal(true)}
+          />
+          <button
+            type="button"
+            className="mt-2 px-4 py-2 rounded-lg bg-samsungBlue text-white font-semibold text-xs shadow-md hover:bg-samsungBlue/80 transition"
+            onClick={() => setShowShareModal(true)}
+          >
+            Compartir imagen
+          </button>
+          <p className="mt-2 text-xs text-slate-300 text-center">
+            Presenta este código QR en el local para validar tu promoción.<br />
+            También puedes compartir la imagen por redes sociales para que otros la usen.
           </p>
-        )}
-
-        {selectedCityId && !loadingPlaces && places.length === 0 && (
-          <p className="text-center text-sm text-slate-400">
-            Por ahora no hay centros comerciales configurados para esta ciudad.
-          </p>
-        )}
-
-        {selectedCityId && places.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-3">
-            {places.map((place) => (
-              <article
-                key={place.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 shadow-md shadow-black/30"
-              >
-                <header className="border-b border-slate-700 pb-2 text-center">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-50">
-                    {place.name}
-                  </h3>
-                </header>
-                <div className="space-y-1.5 py-3 text-sm text-slate-200">
-                  <p>• {place.storeName || "Samsung Store"}</p>
-                  {place.address && <p className="italic">• {place.address}</p>}
-                </div>
-                <div className="pt-1 pb-1 text-center">
+          {/* Modal de compartir */}
+          {showShareModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+              <div className="bg-slate-900 rounded-xl p-6 shadow-2xl flex flex-col items-center gap-4">
+                <p className="text-sm text-slate-200 font-semibold">Compartir imagen por:</p>
+                <div className="flex flex-row gap-4">
                   <button
                     type="button"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
+                    title="WhatsApp"
                     onClick={() => {
-                      setSelectedPlaceId(place.id);
-                      if (typeof document !== "undefined") {
-                        const el = document.getElementById("promociones");
-                        el?.scrollIntoView({ behavior: "smooth", block: "start" });
-                      }
+                      const url = `${window.location.origin}/qr-demo.png`;
+                      window.open(`https://wa.me/?text=¡Usa este código QR para promociones Samsung! ${url}`);
+                      setShowShareModal(false);
                     }}
-                    className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-sm font-semibold shadow-md transition ${
-                      selectedPlaceId === place.id
-                        ? "bg-samsungBlue text-white shadow-samsungBlue/40"
-                        : "bg-samsungBlue/90 text-white hover:bg-samsungBlue"
-                    }`}
                   >
-                    Ver promociones
+                    <WhatsAppIcon className="h-6 w-6" />
+                    <span className="text-xs font-medium">WhatsApp</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
+                    title="Facebook"
+                    onClick={() => {
+                      const url = `${window.location.origin}/qr-demo.png`;
+                      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+                      setShowShareModal(false);
+                    }}
+                  >
+                    <FacebookIcon className="h-6 w-6" />
+                    <span className="text-xs font-medium">Facebook</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
+                    title="X/Twitter"
+                    onClick={() => {
+                      const url = `${window.location.origin}/qr-demo.png`;
+                      window.open(`https://twitter.com/intent/tweet?text=¡Usa este código QR para promociones Samsung!&url=${encodeURIComponent(url)}`);
+                      setShowShareModal(false);
+                    }}
+                  >
+                    <TwitterIcon className="h-6 w-6" />
+                    <span className="text-xs font-medium">X/Twitter</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
+                    title="Instagram"
+                    onClick={() => {
+                      alert('Instagram solo permite compartir imágenes por mensaje directo o historia. Descarga la imagen y compártela manualmente.');
+                      setShowShareModal(false);
+                    }}
+                  >
+                    <InstagramIcon className="h-6 w-6" />
+                    <span className="text-xs font-medium">Instagram</span>
                   </button>
                 </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section
-        id="promociones"
-        className="space-y-3 rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-2xl shadow-black/40 sm:p-6"
-      >
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-
-            <p className="text-base text-slate-200 flex flex-wrap items-center gap-2">
-              <span className="font-medium">
-                {selectedCity ? selectedCity.name : "Selecciona una ciudad para ver sus promociones"}
-              </span>
-              {selectedPlace && (
-                <>
-                  <span className="text-slate-400">· {selectedPlace.name}</span>
-                  {selectedPlace.locationUrl && (
-                    <a
-                      href={selectedPlace.locationUrl || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-full border border-samsungBlue/20 bg-white/80 px-2.5 py-0.5 text-[11px] font-medium text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
-                    >
-                      <CompassIcon className="h-4 w-4 text-samsungBlue" />
-                      Ubicación
-                    </a>
-                  )}
-                </>
-              )}
-            </p>
-          </div>
+                <button
+                  type="button"
+                  className="mt-2 px-4 py-2 rounded-lg bg-slate-700 text-white font-semibold text-xs shadow-md hover:bg-slate-800 transition"
+                  onClick={() => setShowShareModal(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+    
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-base text-slate-200 flex flex-wrap items-center gap-2">
+            <span className="font-medium">
+              {selectedCity ? selectedCity.name : ""}
+            </span>
+            {selectedPlace && (
+              <>
+                <span className="text-slate-400">· {selectedPlace.name}</span>
+                {selectedPlace.locationUrl && (
+                  <a
+                    href={selectedPlace.locationUrl || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-full border border-samsungBlue/20 bg-white/80 px-2.5 py-0.5 text-[11px] font-medium text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+                  >
+                    <GoogleMapsIcon className="h-4 w-4 text-samsungBlue" />
+                    Ubicación
+                  </a>
+                )}
+              </>
+            )}
+          </p>
+        </div>
+      </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+      {/* Layout de promociones + iconos */}
+      <div className="flex w-full gap-4">
+        {/* Productos promocionales: 80% */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 w-4/5">
           {loadingPromotions && <p className="text-sm text-slate-400">Cargando promociones…</p>}
           {!loadingPromotions && selectedPlaceId && promotions.length === 0 && (
             <p className="text-sm text-slate-400">
               Por ahora no hay promociones configuradas para este lugar.
             </p>
           )}
-          {!selectedPlaceId && (
-            <p className="text-sm text-slate-400">
-            </p>
-          )}
-
           {promotions.map((promo) => (
-            <article key={promo.id} className="card overflow-hidden">
+            <article key={promo.id} className="card overflow-hidden w-full">
               <div className="aspect-[4/3] w-full bg-slate-800">
                 {promo.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={promo.imageUrl}
                     alt={promo.title}
@@ -311,60 +402,139 @@ export default function HomePage() {
           ))}
         </div>
 
-        {selectedPlace && (selectedPlace.phone || selectedPlace.email) && (
-          <div className="mt-3 border-t border-slate-800/70 pt-3 text-xs text-slate-300 flex flex-wrap items-center gap-3">
-            <span className="text-[11px] text-slate-400">Contacto del punto de venta</span>
-            <div className="flex flex-wrap gap-2">
-              {/* Botón Maps/brújula */}
-              {selectedPlace.locationUrl && (
-                <a
-                  href={selectedPlace.locationUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/30 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
-                >
-                  <CompassIcon className="h-5 w-5" />
-                </a>
-              )}
-              {/* Botón llamada */}
-              {selectedPlace.phone && (
-                <a
-                  href={`tel:${selectedPlace.phone}`}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-sky-400/60 bg-white/80 text-sky-500 hover:bg-sky-500 hover:text-white transition"
-                >
-                  <CallIcon className="h-5 w-5" />
-                </a>
-              )}
-              {/* Botón WhatsApp/chat */}
-              {selectedPlace.phone && (
-                <a
-                  href={getWhatsAppUrl(selectedPlace.phone)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/60 bg-white/80 text-emerald-500 hover:bg-emerald-500 hover:text-white transition"
-                >
-                  <ChatIcon className="h-5 w-5" />
-                </a>
-              )}
-              {/* Botón correo */}
-              {selectedPlace.email && (
-                <a
-                  href={`mailto:${selectedPlace.email}`}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/60 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
-                >
-                  <MailIcon className="h-5 w-5" />
-                </a>
-              )}
-            </div>
-          </div>
-
+        {/* Iconos de redes sociales: 20% */}
+        {selectedPlace && (
+          <aside className="w-1/5 flex flex-col gap-4 items-center justify-start">
+            <SocialButton icon={<FacebookIcon className="h-8 w-8" />} label="Facebook" onClick={() => handleSocialShare('facebook', selectedPlace)} />
+            <SocialButton icon={<InstagramIcon className="h-8 w-8" />} label="Instagram" onClick={() => handleSocialShare('instagram', selectedPlace)} />
+            <SocialButton icon={<TwitterIcon className="h-8 w-8" />} label="X/Twitter" onClick={() => handleSocialShare('twitter', selectedPlace)} />
+            <SocialButton icon={<WhatsAppIcon className="h-8 w-8" />} label="WhatsApp" onClick={() => handleSocialShare('whatsapp', selectedPlace)} />
+          </aside>
         )}
-      </section>
-      <PromoCarousel />
-      <NewsletterSection/>
-    </div>
-  );
-}
+      </div>
+
+      {/* Contacto del punto de venta */}
+      {selectedPlace && (selectedPlace.phone || selectedPlace.email) && (
+        <div className="mt-3 border-t border-slate-800/70 pt-3 text-xs text-slate-300 flex flex-wrap items-center gap-3">
+          <span className="text-[11px] text-slate-400">Contacto del punto de venta</span>
+          <div className="flex flex-wrap gap-2">
+            {selectedPlace.locationUrl && (
+              <a
+                href={selectedPlace.locationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/30 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+              >
+                <GoogleMapsIcon className="h-5 w-5" />
+              </a>
+            )}
+            {selectedPlace.phone && (
+              <a
+                href={`tel:${selectedPlace.phone}`}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-sky-400/60 bg-white/80 text-sky-500 hover:bg-sky-500 hover:text-white transition"
+              >
+                <PhoneOfficialIcon className="h-5 w-5" />
+              </a>
+            )}
+            {selectedPlace.phone && (
+              <a
+                href={getWhatsAppUrl(selectedPlace.phone)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/60 bg-white/80 text-emerald-500 hover:bg-emerald-500 hover:text-white transition"
+              >
+                <WhatsAppIcon className="h-5 w-5" />
+              </a>
+            )}
+            {selectedPlace.email && (
+              <a
+                href={`mailto:${selectedPlace.email}`}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/60 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+              >
+                <MailIcon className="h-5 w-5" />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+
+    <PromoCarousel />
+    <NewsletterSection/>
+  </div>
+);
+};
+
+
+        // Botón de red social
+        function SocialButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+          return (
+            <button
+              type="button"
+              className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
+              onClick={onClick}
+              title={label}
+            >
+              {icon}
+              <span className="text-xs font-medium">{label}</span>
+            </button>
+          );
+        }
+
+        // Iconos oficiales
+        function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
+          return (
+            <svg viewBox="0 0 24 24" fill="none" {...props}>
+              <circle cx="12" cy="12" r="12" fill="#1877F3" />
+              <path d="M15.5 8.5H14V7.5C14 7.22 14.22 7 14.5 7H15.5V5H14.5C13.12 5 12 6.12 12 7.5V8.5H10.5V10.5H12V17H14V10.5H15.5V8.5Z" fill="#fff" />
+            </svg>
+          );
+        }
+        function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
+          return (
+            <svg viewBox="0 0 24 24" fill="none" {...props}>
+              <circle cx="12" cy="12" r="12" fill="#E1306C" />
+              <rect x="7" y="7" width="10" height="10" rx="3" fill="#fff" />
+              <circle cx="12" cy="12" r="3" fill="#E1306C" />
+              <circle cx="16" cy="8" r="1" fill="#E1306C" />
+            </svg>
+          );
+        }
+        function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
+          return (
+            <svg viewBox="0 0 24 24" fill="none" {...props}>
+              <circle cx="12" cy="12" r="12" fill="#1DA1F2" />
+              <path d="M19 8.5c-.5.2-1 .4-1.5.5.5-.3.9-.8 1-1.4-.5.3-1 .6-1.6.7-.5-.5-1.2-.8-2-.8-1.5 0-2.7 1.2-2.7 2.7 0 .2 0 .4.1.6-2.2-.1-4.1-1.2-5.4-2.9-.2.3-.3.7-.3 1.1 0 .9.5 1.7 1.2 2.1-.5 0-.9-.2-1.3-.4v.1c0 1.3.9 2.3 2.1 2.5-.2.1-.5.1-.7.1-.2 0-.3 0-.5-.1.3 1 1.2 1.7 2.2 1.7-1 .8-2.2 1.2-3.5 1.2-.2 0-.4 0-.6-.1C6.5 17 8.2 17.5 10 17.5c4.2 0 6.5-3.5 6.5-6.5v-.3c.4-.3.8-.7 1-1.2z" fill="#fff" />
+            </svg>
+          );
+        }
+
+        // Manejo de publicación
+        function handleSocialShare(network: string, place: Place | null) {
+          if (!place) return;
+          let url = "";
+          const text = encodeURIComponent(`¡Visita ${place.name} en ${place.cityName}!`);
+          switch (network) {
+            case "facebook":
+              url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              break;
+            case "instagram":
+              alert("Instagram no permite compartir directamente desde web. Copia el texto y publícalo en la app.");
+              return;
+            case "twitter":
+              url = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              break;
+            case "whatsapp":
+              url = `https://wa.me/?text=${text}%20${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              break;
+            default:
+              return;
+          }
+          window.open(url, '_blank');
+        }
+
+
+
 
 function PhoneIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
