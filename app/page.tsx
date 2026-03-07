@@ -355,7 +355,7 @@ export default function HomePage() {
               <SocialButton icon={<FacebookIcon className="h-5 w-5" />} label="Facebook" onClick={() => handleSocialShare('facebook', selectedPlace)} />
               <SocialButton icon={<XIcon className="h-5 w-5" />} label="X" onClick={() => handleSocialShare('twitter', selectedPlace)} />
               <SocialButton icon={<InstagramIcon className="h-5 w-5" />} label="Instagram" onClick={() => handleSocialShare('instagram', selectedPlace)} />
-              <SocialButton icon={<LinkedInIcon className="h-5 w-5" />} label="LinkedIn" onClick={() => handleSocialShare('linkedin', selectedPlace)} />
+              <SocialButton icon={<WhatsAppIcon className="h-5 w-5" />} label="WhatsApp" onClick={() => handleSocialShare('whatsapp', selectedPlace)} />
               <SocialButton icon={<TelegramIcon className="h-5 w-5" />} label="Telegram" onClick={() => handleSocialShare('telegram', selectedPlace)} />
             </div>
           </aside>
@@ -364,15 +364,16 @@ export default function HomePage() {
 
       {/* Contacto del punto de venta */}
       {selectedPlace && (selectedPlace.phone || selectedPlace.email) && (
-        <div className="mt-3 border-t border-slate-800/70 pt-3 text-xs text-slate-300 flex flex-wrap items-center gap-3">
-          <span className="text-[11px] text-slate-400">Contacto del punto de venta</span>
-          <div className="flex flex-wrap gap-2">
+        <div className="mt-4 border-t border-slate-800/70 pt-4 flex flex-col gap-3">
+          <span className="text-xs font-medium text-slate-400 tracking-wide uppercase">Contacto del punto de venta</span>
+          <div className="flex flex-wrap gap-3">
             {selectedPlace.locationUrl && (
               <a
                 href={selectedPlace.locationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/30 bg-white/80 text-samsungBlue"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                title="Ver ubicación"
               >
                 <GoogleMapsIcon className="h-5 w-5" />
               </a>
@@ -380,9 +381,10 @@ export default function HomePage() {
             {selectedPlace.phone && (
               <a
                 href={`tel:${selectedPlace.phone}`}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-sky-400/60 bg-white/80 text-sky-500"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                title="Llamar"
               >
-                <PhoneOfficialIcon className="h-5 w-5" />
+                <PhoneContactIcon className="h-5 w-5" />
               </a>
             )}
             {selectedPlace.phone && (
@@ -390,17 +392,19 @@ export default function HomePage() {
                 href={getWhatsAppUrl(selectedPlace.phone)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/60 bg-white/80 text-emerald-500"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                title="WhatsApp"
               >
-                <WhatsAppIcon className="h-5 w-5" />
+                <WhatsAppContactIcon className="h-5 w-5" />
               </a>
             )}
             {selectedPlace.email && (
               <a
                 href={`mailto:${selectedPlace.email}`}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/60 bg-white/80 text-samsungBlue"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                title="Enviar email"
               >
-                <MailIcon className="h-5 w-5" />
+                <MailContactIcon className="h-5 w-5" />
               </a>
             )}
           </div>
@@ -472,10 +476,10 @@ export default function HomePage() {
             </svg>
           );
         }
-        function LinkedInIcon(props: React.SVGProps<SVGSVGElement>) {
+        function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
           return (
             <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
             </svg>
           );
         }
@@ -564,13 +568,40 @@ function MailIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-// Icono Google Maps oficial
+// Icono ubicación - minimalista outline
 function GoogleMapsIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <circle cx="12" cy="12" r="10" fill="#fff" />
-      <path d="M12 2C7.03 2 3 6.03 3 11c0 4.97 4.03 9 9 9s9-4.03 9-9c0-4.97-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7 0-3.86 3.14-7 7-7 3.86 0 7 3.14 7 7 0 3.86-3.14 7-7 7z" fill="#4285F4" />
-      <path d="M12 6.5c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5S10.62 8.5 12 8.5s2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#EA4335" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+// Icono teléfono contacto - minimalista
+function PhoneContactIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+    </svg>
+  );
+}
+
+// Icono WhatsApp contacto - minimalista
+function WhatsAppContactIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  );
+}
+
+// Icono email contacto - minimalista
+function MailContactIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
     </svg>
   );
 }
@@ -580,17 +611,6 @@ function PhoneOfficialIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.68 14.91 16.08 14.82 16.43 14.94C17.55 15.31 18.75 15.51 20 15.51C20.55 15.51 21 15.96 21 16.51V20C21 20.55 20.55 21 20 21C11.72 21 5 14.28 5 6C5 5.45 5.45 5 6 5H9.5C10.05 5 10.5 5.45 10.5 6C10.5 7.25 10.7 8.45 11.07 9.57C11.18 9.92 11.1 10.32 10.82 10.6L8.62 12.8L6.62 10.79Z" fill="#1976D2" />
-    </svg>
-  );
-}
-
-// Icono WhatsApp oficial - estilo moderno
-function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <circle cx="24" cy="24" r="22" fill="#25D366" />
-      <path d="M34.6 28.8c-.5-.3-3.1-1.5-3.5-1.7-.5-.2-.8-.3-1.2.3-.3.5-1.3 1.7-1.6 2-.3.3-.6.4-1.1.1-.5-.3-2.2-.8-4.2-2.6-1.5-1.4-2.6-3.1-2.9-3.6-.3-.5 0-.8.2-1 .2-.2.5-.6.8-.9.3-.3.3-.5.5-.9.2-.3.1-.6 0-.9-.1-.3-1.2-2.8-1.6-3.9-.4-1-.9-.9-1.2-.9h-1c-.4 0-.9.1-1.4.7-.5.5-1.8 1.8-1.8 4.3s1.9 5 2.1 5.4c.3.3 3.7 5.6 8.9 7.9 1.2.5 2.2.8 3 1 1.2.4 2.4.3 3.3.2 1-.2 3.1-1.3 3.5-2.5.4-1.2.4-2.3.3-2.5-.1-.2-.5-.4-1-.6z" fill="white" />
-      <path d="M24 7C14.6 7 7 14.6 7 24c0 3.7 1.2 7.2 3.3 10l-2.2 8 8.2-2.1c2.7 1.8 6 2.9 9.4 2.9h.1c9.4 0 17-7.6 17-17S33.4 7 24 7zm0 31.1c-3.3 0-6.4-1.1-8.9-2.9l-.6-.4-6.5 1.7 1.7-6.4-.4-.7c-2-3-3-6.5-3-10.2C6.3 12.3 14.1 4.5 24 4.5S41.7 12.3 41.7 22.2 33.9 38.1 24 38.1z" fill="white" fillOpacity="0" />
     </svg>
   );
 }
