@@ -54,14 +54,12 @@ export default function PromoCarousel() {
         <div className="relative">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {[0, 1].map((offset) => {
-              // En móvil solo la primera imagen
-              if (offset === 1 && typeof window !== "undefined" && window.innerWidth < 1024) return null;
               const idx = (current + offset) % total;
               const slide = slides[idx];
               return (
                 <div
                   key={slide.src}
-                  className="relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/80 shadow-2xl shadow-black/40 flex items-center justify-center"
+                  className={`relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/80 shadow-2xl shadow-black/40 flex items-center justify-center ${offset === 1 ? "hidden lg:flex" : ""}`}
                 >
                   <a href={slide.href} className="block">
                     <Image

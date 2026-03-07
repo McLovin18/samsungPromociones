@@ -152,7 +152,7 @@ export default function HomePage() {
             {loadingCities && <p className="text-sm text-slate-300">Cargando ciudades…</p>}
             <button
               type="button"
-              className="btn-primary w-full justify-center text-sm"
+              className="btn-primary w-full xl:w-auto justify-center text-sm"
             disabled={!selectedCityId}
           >
             Buscar promociones
@@ -350,7 +350,7 @@ export default function HomePage() {
         {/* Iconos de redes sociales: 20% en desktop, fila horizontal en móvil */}
         {selectedPlace && (
           <aside className="xl:w-1/5 w-full mt-4 xl:mt-0 xl:flex xl:flex-col xl:items-center xl:justify-start xl:gap-4 flex flex-col gap-2 items-center">
-            <p className="text-sm font-semibold text-slate-300 mb-2 xl:mb-0">Compartir promoción</p>
+            <p className="text-sm font-semibold text-slate-300 mb-2 xl:mb-0">COMPARTIR</p>
             <div className="flex flex-row xl:flex-col gap-3 xl:gap-4">
               <SocialButton icon={<FacebookIcon className="h-5 w-5" />} label="Facebook" onClick={() => handleSocialShare('facebook', selectedPlace)} />
               <SocialButton icon={<XIcon className="h-5 w-5" />} label="X" onClick={() => handleSocialShare('twitter', selectedPlace)} />
