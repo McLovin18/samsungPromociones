@@ -19,6 +19,7 @@ interface Place {
   email?: string | null;
   storeName?: string | null;
   address?: string | null;
+  image?: string | null;
 }
 
 export default function AdminDashboardPage() {
@@ -36,6 +37,7 @@ export default function AdminDashboardPage() {
   const [newPlaceEmail, setNewPlaceEmail] = useState("");
   const [newPlaceStoreName, setNewPlaceStoreName] = useState("");
   const [newPlaceAddress, setNewPlaceAddress] = useState("");
+  const [newPlaceImage, setNewPlaceImage] = useState("");
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,6 +77,7 @@ export default function AdminDashboardPage() {
       email: newPlaceEmail.trim() || null,
       storeName: newPlaceStoreName.trim() || null,
       address: newPlaceAddress.trim() || null,
+      image: newPlaceImage.trim() || null,
     };
 
     if (editingPlaceId) {
@@ -91,6 +94,7 @@ export default function AdminDashboardPage() {
     setNewPlaceEmail("");
     setNewPlaceStoreName("");
     setNewPlaceAddress("");
+    setNewPlaceImage("");
     setEditingPlaceId(null);
     setPlaceModalOpen(false);
   };
@@ -218,6 +222,7 @@ export default function AdminDashboardPage() {
                     setNewPlaceEmail("");
                     setNewPlaceStoreName("");
                     setNewPlaceAddress("");
+                    setNewPlaceImage("");
                     setPlaceModalOpen(true);
                   }}
                   className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1.5 text-left text-xs hover:border-samsungBlue/60"
@@ -245,6 +250,7 @@ export default function AdminDashboardPage() {
             setNewPlaceEmail("");
             setNewPlaceStoreName("");
             setNewPlaceAddress("");
+            setNewPlaceImage("");
           }}
           title={`Lugares en ${selectedCity.name}`}
         >
@@ -325,6 +331,19 @@ export default function AdminDashboardPage() {
                   Dirección que se mostrará como referencia en la tarjeta.
                 </p>
               </div>
+              <div className="space-y-1.5 pt-2">
+                <label className="text-xs font-medium text-slate-700">Imagen promocional del local</label>
+                <input
+                  type="url"
+                  value={newPlaceImage}
+                  onChange={(e) => setNewPlaceImage(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="https://ejemplo.com/imagen-promocional.png"
+                />
+                <p className="text-[11px] text-slate-500">
+                  URL de la imagen promocional que el cliente presentará en el local para validar su promoción.
+                </p>
+              </div>
               <div className="flex justify-end pt-1 text-xs">
                 <button onClick={handleCreatePlace} className="btn-primary px-4 py-1.5">
                   {editingPlaceId ? "Actualizar lugar" : "Guardar lugar"}
@@ -350,6 +369,7 @@ export default function AdminDashboardPage() {
                       setNewPlaceEmail(place.email || "");
                       setNewPlaceStoreName(place.storeName || "");
                       setNewPlaceAddress(place.address || "");
+                      setNewPlaceImage(place.image || "");
                     }}
                     className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs hover:border-samsungBlue/60"
                   >

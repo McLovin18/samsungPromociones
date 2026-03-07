@@ -14,6 +14,47 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
+      <head>
+        <link
+          rel="preload"
+          href="https://static.samsung.com/images/ic/site/fonts/samsungone-400.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="https://static.samsung.com/images/ic/site/fonts/samsungone-700.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              @font-face {
+                font-family: 'SamsungOne';
+                src: url('https://static.samsung.com/images/ic/site/fonts/samsungone-400.woff2') format('woff2'),
+                     url('https://static.samsung.com/images/ic/site/fonts/samsungone-400.woff') format('woff');
+                font-weight: 400;
+                font-style: normal;
+                font-display: swap;
+              }
+              @font-face {
+                font-family: 'SamsungOne';
+                src: url('https://static.samsung.com/images/ic/site/fonts/samsungone-700.woff2') format('woff2'),
+                     url('https://static.samsung.com/images/ic/site/fonts/samsungone-700.woff') format('woff');
+                font-weight: 700;
+                font-style: normal;
+                font-display: swap;
+              }
+              html, body, * {
+                font-family: 'SamsungOne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+              }
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-slate-50">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-center px-4 py-3 sm:py-4">

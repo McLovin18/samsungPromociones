@@ -20,6 +20,7 @@ interface Place {
   email?: string | null;
   storeName?: string | null;
   address?: string | null;
+  image?: string | null;
 }
 
 interface Promotion {
@@ -129,31 +130,29 @@ export default function HomePage() {
   };
 
   return (
-  <div className="space-y-10 w-full">
-    {/* Selección de ciudad */}
-    <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
-      <div className="space-y-3 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
-          Samsung Ecuador
-        </p>
-        <p className="text-lg font-semibold text-white">Selecciona tu ciudad</p>
-        <div className="space-y-3">
-          <select
-            className="w-full rounded-lg border border-slate-700 bg-white px-3 py-2.5 text-base text-slate-900 outline-none ring-samsungBlue/30 focus:border-samsungBlue focus:ring-2"
-            value={selectedCityId}
-            onChange={(e) => setSelectedCityId(e.target.value)}
-          >
-            <option value="">Selecciona tu ciudad</option>
-            {cities.map((city) => (
-              <option key={city.id} value={city.id}>
-                {city.name}
-              </option>
-            ))}
-          </select>
-          {loadingCities && <p className="text-sm text-slate-300">Cargando ciudades…</p>}
-          <button
-            type="button"
-            className="btn-primary w-full justify-center text-sm"
+    <div className="space-y-10 w-full">
+      {/* Selección de ciudad */}
+      <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
+        <div className="space-y-3 text-center">
+
+          <p className="text-lg font-semibold text-white">Selecciona tu ciudad</p>
+          <div className="space-y-3">
+            <select
+              className="w-full rounded-lg border border-slate-700 bg-white px-3 py-2.5 text-base text-slate-900 outline-none ring-samsungBlue/30 focus:border-samsungBlue focus:ring-2"
+              value={selectedCityId}
+              onChange={(e) => setSelectedCityId(e.target.value)}
+            >
+              <option value="">Selecciona tu ciudad</option>
+              {cities.map((city) => (
+                <option key={city.id} value={city.id}>
+                  {city.name}
+                </option>
+              ))}
+            </select>
+            {loadingCities && <p className="text-sm text-slate-300">Cargando ciudades…</p>}
+            <button
+              type="button"
+              className="btn-primary w-full justify-center text-sm"
             disabled={!selectedCityId}
           >
             Buscar promociones
@@ -231,96 +230,6 @@ export default function HomePage() {
         id="promociones"
         className="space-y-6 w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-2xl shadow-black/40 sm:p-6"
       >
-        {/* Sección QR para validar promoción */}
-        <div className="flex flex-col items-center justify-center mb-4">
-          {/* QR y botón compartir */}
-          <img
-            src="/imagenPromocion.jpeg"
-            alt="Código QR para validar promoción"
-            className="w-32 h-32 rounded-lg border border-slate-700 bg-white p-2 shadow-md cursor-pointer"
-            id="promo-qr-img"
-            onClick={() => setShowShareModal(true)}
-          />
-          <button
-            type="button"
-            className="mt-2 px-4 py-2 rounded-lg bg-samsungBlue text-white font-semibold text-xs shadow-md hover:bg-samsungBlue/80 transition"
-            onClick={() => setShowShareModal(true)}
-          >
-            Compartir imagen
-          </button>
-          <p className="mt-2 text-xs text-slate-300 text-center">
-            Presenta este código QR en el local para validar tu promoción.<br />
-            También puedes compartir la imagen por redes sociales para que otros la usen.
-          </p>
-          {/* Modal de compartir */}
-          {showShareModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-              <div className="bg-slate-900 rounded-xl p-6 shadow-2xl flex flex-col items-center gap-4">
-                <p className="text-sm text-slate-200 font-semibold">Compartir imagen por:</p>
-                <div className="flex flex-row gap-4">
-                  <button
-                    type="button"
-                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
-                    title="WhatsApp"
-                    onClick={() => {
-                      const url = `${window.location.origin}/qr-demo.png`;
-                      window.open(`https://wa.me/?text=¡Usa este código QR para promociones Samsung! ${url}`);
-                      setShowShareModal(false);
-                    }}
-                  >
-                    <WhatsAppIcon className="h-6 w-6" />
-                    <span className="text-xs font-medium">WhatsApp</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
-                    title="Facebook"
-                    onClick={() => {
-                      const url = `${window.location.origin}/qr-demo.png`;
-                      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
-                      setShowShareModal(false);
-                    }}
-                  >
-                    <FacebookIcon className="h-6 w-6" />
-                    <span className="text-xs font-medium">Facebook</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
-                    title="X/Twitter"
-                    onClick={() => {
-                      const url = `${window.location.origin}/qr-demo.png`;
-                      window.open(`https://twitter.com/intent/tweet?text=¡Usa este código QR para promociones Samsung!&url=${encodeURIComponent(url)}`);
-                      setShowShareModal(false);
-                    }}
-                  >
-                    <TwitterIcon className="h-6 w-6" />
-                    <span className="text-xs font-medium">X/Twitter</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
-                    title="Instagram"
-                    onClick={() => {
-                      alert('Instagram solo permite compartir imágenes por mensaje directo o historia. Descarga la imagen y compártela manualmente.');
-                      setShowShareModal(false);
-                    }}
-                  >
-                    <InstagramIcon className="h-6 w-6" />
-                    <span className="text-xs font-medium">Instagram</span>
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  className="mt-2 px-4 py-2 rounded-lg bg-slate-700 text-white font-semibold text-xs shadow-md hover:bg-slate-800 transition"
-                  onClick={() => setShowShareModal(false)}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
     
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -349,9 +258,45 @@ export default function HomePage() {
       </div>
 
       {/* Layout de promociones + iconos */}
-      <div className="flex w-full gap-4">
-        {/* Productos promocionales: 80% */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 w-4/5">
+      <div className="flex flex-col xl:flex-row w-full gap-4">
+        {/* Imagen promocional del local: 20% en desktop, arriba en móvil */}
+        {selectedPlace && selectedPlace.image && (
+          <div className="flex flex-col items-center justify-start xl:w-1/5 w-full mb-4 xl:mb-0">
+            <img
+              src={selectedPlace.image}
+              alt="Imagen promocional del local"
+              className="w-40 h-40 rounded-lg border border-slate-700 bg-white p-2 shadow-md object-contain"
+            />
+            <button
+              type="button"
+              className="mt-2 px-4 py-2 rounded-lg bg-samsungBlue text-white font-semibold text-xs shadow-md hover:bg-samsungBlue/80 transition"
+              onClick={async () => {
+                try {
+                  const response = await fetch(selectedPlace.image!);
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = 'promocion-local.png';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                } catch (error) {
+                  console.error('Error descargando imagen:', error);
+                  window.open(selectedPlace.image!, '_blank');
+                }
+              }}
+            >
+              Descargar imagen
+            </button>
+            <p className="mt-3 text-xs text-slate-300 text-center leading-relaxed max-w-[180px]">
+              Acércate al local que seleccionaste con el cupón que descargaste para obtener tu descuento.
+            </p>
+          </div>
+        )}
+        {/* Productos promocionales: 60% en desktop */}
+        <div className="xl:w-3/5 w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           {loadingPromotions && <p className="text-sm text-slate-400">Cargando promociones…</p>}
           {!loadingPromotions && selectedPlaceId && promotions.length === 0 && (
             <p className="text-sm text-slate-400">
@@ -402,13 +347,17 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Iconos de redes sociales: 20% */}
+        {/* Iconos de redes sociales: 20% en desktop, fila horizontal en móvil */}
         {selectedPlace && (
-          <aside className="w-1/5 flex flex-col gap-4 items-center justify-start">
-            <SocialButton icon={<FacebookIcon className="h-8 w-8" />} label="Facebook" onClick={() => handleSocialShare('facebook', selectedPlace)} />
-            <SocialButton icon={<InstagramIcon className="h-8 w-8" />} label="Instagram" onClick={() => handleSocialShare('instagram', selectedPlace)} />
-            <SocialButton icon={<TwitterIcon className="h-8 w-8" />} label="X/Twitter" onClick={() => handleSocialShare('twitter', selectedPlace)} />
-            <SocialButton icon={<WhatsAppIcon className="h-8 w-8" />} label="WhatsApp" onClick={() => handleSocialShare('whatsapp', selectedPlace)} />
+          <aside className="xl:w-1/5 w-full mt-4 xl:mt-0 xl:flex xl:flex-col xl:items-center xl:justify-start xl:gap-4 flex flex-col gap-2 items-center">
+            <p className="text-sm font-semibold text-slate-300 mb-2 xl:mb-0">Compartir promoción</p>
+            <div className="flex flex-row xl:flex-col gap-3 xl:gap-4">
+              <SocialButton icon={<FacebookIcon className="h-5 w-5" />} label="Facebook" onClick={() => handleSocialShare('facebook', selectedPlace)} />
+              <SocialButton icon={<XIcon className="h-5 w-5" />} label="X" onClick={() => handleSocialShare('twitter', selectedPlace)} />
+              <SocialButton icon={<InstagramIcon className="h-5 w-5" />} label="Instagram" onClick={() => handleSocialShare('instagram', selectedPlace)} />
+              <SocialButton icon={<LinkedInIcon className="h-5 w-5" />} label="LinkedIn" onClick={() => handleSocialShare('linkedin', selectedPlace)} />
+              <SocialButton icon={<TelegramIcon className="h-5 w-5" />} label="Telegram" onClick={() => handleSocialShare('telegram', selectedPlace)} />
+            </div>
           </aside>
         )}
       </div>
@@ -423,7 +372,7 @@ export default function HomePage() {
                 href={selectedPlace.locationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/30 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/30 bg-white/80 text-samsungBlue"
               >
                 <GoogleMapsIcon className="h-5 w-5" />
               </a>
@@ -431,7 +380,7 @@ export default function HomePage() {
             {selectedPlace.phone && (
               <a
                 href={`tel:${selectedPlace.phone}`}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-sky-400/60 bg-white/80 text-sky-500 hover:bg-sky-500 hover:text-white transition"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-sky-400/60 bg-white/80 text-sky-500"
               >
                 <PhoneOfficialIcon className="h-5 w-5" />
               </a>
@@ -441,7 +390,7 @@ export default function HomePage() {
                 href={getWhatsAppUrl(selectedPlace.phone)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/60 bg-white/80 text-emerald-500 hover:bg-emerald-500 hover:text-white transition"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/60 bg-white/80 text-emerald-500"
               >
                 <WhatsAppIcon className="h-5 w-5" />
               </a>
@@ -449,7 +398,7 @@ export default function HomePage() {
             {selectedPlace.email && (
               <a
                 href={`mailto:${selectedPlace.email}`}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/60 bg-white/80 text-samsungBlue hover:bg-samsungBlue hover:text-white transition"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-samsungBlue/60 bg-white/80 text-samsungBlue"
               >
                 <MailIcon className="h-5 w-5" />
               </a>
@@ -461,50 +410,79 @@ export default function HomePage() {
 
     <PromoCarousel />
     <NewsletterSection/>
+    
+    {/* Footer del desarrollador */}
+    <footer className="mt-8 border-t border-slate-800/50 pt-6 pb-4">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <p className="text-xs text-slate-500">
+          © {new Date().getFullYear()} Promociones Samsung Ecuador. Todos los derechos reservados.
+        </p>
+        <a 
+          href="https://grupoecualink.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="group inline-flex items-center gap-2 rounded-full border border-slate-700/50 bg-slate-900/60 px-4 py-2 text-xs text-slate-400 transition hover:border-samsungBlue/50 hover:bg-slate-800/80 hover:text-slate-200"
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+          Sitio web desarrollado por 
+          <span className="font-semibold text-samsungBlue group-hover:text-white transition">Grupo EcuaLink</span>
+        </a>
+      </div>
+    </footer>
   </div>
 );
 };
 
 
-        // Botón de red social
+        // Botón de red social - estilo minimalista circular
         function SocialButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
           return (
             <button
               type="button"
-              className="flex flex-col items-center justify-center gap-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 p-2 shadow-md text-white transition"
+              className="flex items-center justify-center h-12 w-12 rounded-full border border-slate-600 bg-transparent hover:border-slate-400 text-slate-300 hover:text-white transition"
               onClick={onClick}
               title={label}
             >
               {icon}
-              <span className="text-xs font-medium">{label}</span>
             </button>
           );
         }
 
-        // Iconos oficiales
+        // Iconos minimalistas
         function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
           return (
-            <svg viewBox="0 0 24 24" fill="none" {...props}>
-              <circle cx="12" cy="12" r="12" fill="#1877F3" />
-              <path d="M15.5 8.5H14V7.5C14 7.22 14.22 7 14.5 7H15.5V5H14.5C13.12 5 12 6.12 12 7.5V8.5H10.5V10.5H12V17H14V10.5H15.5V8.5Z" fill="#fff" />
+            <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" />
+            </svg>
+          );
+        }
+        function XIcon(props: React.SVGProps<SVGSVGElement>) {
+          return (
+            <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
           );
         }
         function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
           return (
-            <svg viewBox="0 0 24 24" fill="none" {...props}>
-              <circle cx="12" cy="12" r="12" fill="#E1306C" />
-              <rect x="7" y="7" width="10" height="10" rx="3" fill="#fff" />
-              <circle cx="12" cy="12" r="3" fill="#E1306C" />
-              <circle cx="16" cy="8" r="1" fill="#E1306C" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
             </svg>
           );
         }
-        function TwitterIcon(props: React.SVGProps<SVGSVGElement>) {
+        function LinkedInIcon(props: React.SVGProps<SVGSVGElement>) {
           return (
-            <svg viewBox="0 0 24 24" fill="none" {...props}>
-              <circle cx="12" cy="12" r="12" fill="#1DA1F2" />
-              <path d="M19 8.5c-.5.2-1 .4-1.5.5.5-.3.9-.8 1-1.4-.5.3-1 .6-1.6.7-.5-.5-1.2-.8-2-.8-1.5 0-2.7 1.2-2.7 2.7 0 .2 0 .4.1.6-2.2-.1-4.1-1.2-5.4-2.9-.2.3-.3.7-.3 1.1 0 .9.5 1.7 1.2 2.1-.5 0-.9-.2-1.3-.4v.1c0 1.3.9 2.3 2.1 2.5-.2.1-.5.1-.7.1-.2 0-.3 0-.5-.1.3 1 1.2 1.7 2.2 1.7-1 .8-2.2 1.2-3.5 1.2-.2 0-.4 0-.6-.1C6.5 17 8.2 17.5 10 17.5c4.2 0 6.5-3.5 6.5-6.5v-.3c.4-.3.8-.7 1-1.2z" fill="#fff" />
+            <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+          );
+        }
+        function TelegramIcon(props: React.SVGProps<SVGSVGElement>) {
+          return (
+            <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
             </svg>
           );
         }
@@ -526,6 +504,12 @@ export default function HomePage() {
               break;
             case "whatsapp":
               url = `https://wa.me/?text=${text}%20${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              break;
+            case "linkedin":
+              url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}`;
+              break;
+            case "telegram":
+              url = `https://t.me/share/url?url=${encodeURIComponent(place.locationUrl || "https://shop.samsung.com/latin/ecu/ec")}&text=${text}`;
               break;
             default:
               return;
@@ -600,12 +584,13 @@ function PhoneOfficialIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-// Icono WhatsApp oficial
+// Icono WhatsApp oficial - estilo moderno
 function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <circle cx="12" cy="12" r="10" fill="#25D366" />
-      <path d="M17.472 14.382c-.297-.149-1.758-.868-2.031-.967-.273-.099-.472-.148-.671.149-.198.297-.767.967-.941 1.164-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.447-.521.149-.173.198-.297.298-.495.099-.198.05-.372-.025-.521-.074-.149-.671-1.611-.921-2.207-.242-.579-.487-.5-.671-.51-.173-.009-.372-.011-.571-.011-.198 0-.521.074-.793.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.066 2.875 1.216 3.074.149.198 2.099 3.209 5.077 4.504.711.306 1.263.489 1.697.626.713.227 1.36.195 1.872.118.571-.085 1.758-.719 2.008-1.413.25-.694.25-1.289.173-1.413-.074-.124-.272-.198-.569-.347z" fill="#fff" />
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="24" cy="24" r="22" fill="#25D366" />
+      <path d="M34.6 28.8c-.5-.3-3.1-1.5-3.5-1.7-.5-.2-.8-.3-1.2.3-.3.5-1.3 1.7-1.6 2-.3.3-.6.4-1.1.1-.5-.3-2.2-.8-4.2-2.6-1.5-1.4-2.6-3.1-2.9-3.6-.3-.5 0-.8.2-1 .2-.2.5-.6.8-.9.3-.3.3-.5.5-.9.2-.3.1-.6 0-.9-.1-.3-1.2-2.8-1.6-3.9-.4-1-.9-.9-1.2-.9h-1c-.4 0-.9.1-1.4.7-.5.5-1.8 1.8-1.8 4.3s1.9 5 2.1 5.4c.3.3 3.7 5.6 8.9 7.9 1.2.5 2.2.8 3 1 1.2.4 2.4.3 3.3.2 1-.2 3.1-1.3 3.5-2.5.4-1.2.4-2.3.3-2.5-.1-.2-.5-.4-1-.6z" fill="white" />
+      <path d="M24 7C14.6 7 7 14.6 7 24c0 3.7 1.2 7.2 3.3 10l-2.2 8 8.2-2.1c2.7 1.8 6 2.9 9.4 2.9h.1c9.4 0 17-7.6 17-17S33.4 7 24 7zm0 31.1c-3.3 0-6.4-1.1-8.9-2.9l-.6-.4-6.5 1.7 1.7-6.4-.4-.7c-2-3-3-6.5-3-10.2C6.3 12.3 14.1 4.5 24 4.5S41.7 12.3 41.7 22.2 33.9 38.1 24 38.1z" fill="white" fillOpacity="0" />
     </svg>
   );
 }
