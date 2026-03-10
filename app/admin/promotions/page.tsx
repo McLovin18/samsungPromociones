@@ -14,7 +14,6 @@ interface Place {
 interface Promotion {
   id: string;
   title: string;
-  description: string;
   price: number; // precio promocional
   originalPrice?: number | null; // precio antes de la promo
   imageUrl: string;
@@ -30,7 +29,6 @@ export default function AdminPromotionsPage() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
 
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [previousPrice, setPreviousPrice] = useState<string>("");
   const [price, setPrice] = useState<string>(""); // precio promocional
   const [imageUrl, setImageUrl] = useState("");
@@ -72,7 +70,6 @@ export default function AdminPromotionsPage() {
     // al cambiar de lugar limpiamos estado de edición
     setEditingPromotionId(null);
     setTitle("");
-    setDescription("");
     setPreviousPrice("");
     setPrice("");
     setImageUrl("");
@@ -87,7 +84,6 @@ export default function AdminPromotionsPage() {
 
     const payload = {
       title: title.trim(),
-      description: description.trim(),
       price: numericPrice,
       originalPrice: Number.isNaN(numericPreviousPrice) ? null : numericPreviousPrice,
       imageUrl: imageUrl.trim(),
@@ -117,7 +113,6 @@ export default function AdminPromotionsPage() {
   const handleEditPromotion = (promo: Promotion) => {
     setEditingPromotionId(promo.id);
     setTitle(promo.title);
-    setDescription(promo.description);
     setPreviousPrice(
       typeof promo.originalPrice === "number"
         ? promo.originalPrice.toString()
@@ -136,7 +131,6 @@ export default function AdminPromotionsPage() {
     if (editingPromotionId === promo.id) {
       setEditingPromotionId(null);
       setTitle("");
-      setDescription("");
       setPreviousPrice("");
       setPrice("");
       setImageUrl("");
@@ -210,8 +204,6 @@ export default function AdminPromotionsPage() {
           onDelete={handleDeletePromotion}
           title={title}
           setTitle={setTitle}
-          description={description}
-          setDescription={setDescription}
           previousPrice={previousPrice}
           setPreviousPrice={setPreviousPrice}
           price={price}
@@ -232,8 +224,8 @@ function PromoModal({
   onSubmit,
   title,
   setTitle,
-  description,
-  setDescription,
+  // description,
+  // setDescription,
   previousPrice,
   setPreviousPrice,
   price,
@@ -294,17 +286,6 @@ function PromoModal({
                 required
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
                 placeholder="Galaxy S24 con descuento especial"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-medium text-slate-700">Descripción</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                rows={3}
-                className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                placeholder="Detalle breve de la promo, vigencia, condiciones claves…"
               />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -377,8 +358,11 @@ function PromoModal({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold text-slate-50">{promo.title}</p>
-                  <p className="line-clamp-2 text-[11px] text-slate-200">{promo.description}</p>
-                  <div className="mt-1 flex items-baseline gap-2 text-xs">
+                  <div className="mt-1 flex flex-col items-start gap-1 text-xs">
+                    <span className="text-xs font-semibold text-samsungBlue">
+                      $
+                      {promo.price.toLocaleString("es-EC", { minimumFractionDigits: 2 })}
+                    </span>
                     {typeof promo.originalPrice === "number" && (
                       <span className="text-[11px] text-slate-400 line-through">
                         $
@@ -387,10 +371,6 @@ function PromoModal({
                         })}
                       </span>
                     )}
-                    <span className="text-xs font-semibold text-samsungBlue">
-                      $
-                      {promo.price.toLocaleString("es-EC", { minimumFractionDigits: 2 })}
-                    </span>
                   </div>
                 </div>
                 <button

@@ -33,17 +33,68 @@ interface Promotion {
 }
 
 export default function HomePage() {
-    const [showShareModal, setShowShareModal] = useState(false);
-  const [cities, setCities] = useState<City[]>([]);
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
+          // Lista global de todos los lugares
+      const [allPlaces, setAllPlaces] = useState<Place[]>([]);
 
-  const [selectedCityId, setSelectedCityId] = useState<string>("");
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string>("");
+      const [showShareModal, setShowShareModal] = useState(false);
+      const [cities, setCities] = useState<City[]>([]);
+      const [places, setPlaces] = useState<Place[]>([]);
+      const [promotions, setPromotions] = useState<Promotion[]>([]);
 
-  const [loadingCities, setLoadingCities] = useState(false);
-  const [loadingPlaces, setLoadingPlaces] = useState(false);
-  const [loadingPromotions, setLoadingPromotions] = useState(false);
+      const [selectedCityId, setSelectedCityId] = useState<string>("");
+      const [selectedPlaceId, setSelectedPlaceId] = useState<string>("");
+
+      const [loadingCities, setLoadingCities] = useState(false);
+      const [loadingPlaces, setLoadingPlaces] = useState(false);
+      const [loadingPromotions, setLoadingPromotions] = useState(false);
+
+          const [pendingPlaceId, setPendingPlaceId] = useState<string | null>(null);
+          // Cargar todos los lugares al inicio
+          useEffect(() => {
+            const loadAllPlaces = async () => {
+              try {
+                const ref = collection(db, "places");
+                const snap = await getDocs(ref);
+                const items: Place[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+                setAllPlaces(items);
+              } catch (error) {
+                console.error("Error cargando todos los lugares", error);
+              }
+            };
+            loadAllPlaces();
+          }, []);
+        // Estado temporal para selección automática
+      // ...existing code...
+
+      // Detectar parámetro place en la URL y seleccionar automáticamente
+      useEffect(() => {
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const placeId = params.get("place");
+          if (placeId) {
+            setPendingPlaceId(placeId);
+          }
+        }
+      }, []);
+
+      useEffect(() => {
+        if (pendingPlaceId && allPlaces.length > 0) {
+          const foundPlace = allPlaces.find((p) => p.id === pendingPlaceId);
+          if (foundPlace) {
+            if (selectedCityId !== foundPlace.cityId) {
+              setSelectedCityId(foundPlace.cityId);
+              return;
+            }
+            // Solo seleccionar el lugar si está en la lista filtrada por ciudad
+            const filteredPlaces = places.map((p) => p.id);
+            if (filteredPlaces.includes(pendingPlaceId)) {
+              setSelectedPlaceId(pendingPlaceId);
+              setPendingPlaceId(null);
+            }
+          }
+        }
+      }, [allPlaces, places, selectedCityId, pendingPlaceId]);
+
 
   useEffect(() => {
     const loadCities = async () => {
@@ -134,11 +185,10 @@ export default function HomePage() {
       {/* Selección de ciudad */}
       <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
         <div className="space-y-3 text-center">
-
           <p className="text-lg font-semibold text-white">Selecciona tu ciudad</p>
-          <div className="space-y-3">
+          <div className="flex flex-col items-center gap-4">
             <select
-              className="w-full rounded-lg border border-slate-700 bg-white px-3 py-2.5 text-base text-slate-900 outline-none ring-samsungBlue/30 focus:border-samsungBlue focus:ring-2"
+              className="w-full xl:w-1/2 rounded-lg border border-slate-700 bg-white px-3 py-2.5 text-base text-slate-900 outline-none ring-samsungBlue/30 focus:border-samsungBlue focus:ring-2"
               value={selectedCityId}
               onChange={(e) => setSelectedCityId(e.target.value)}
             >
@@ -153,13 +203,13 @@ export default function HomePage() {
             <button
               type="button"
               className="btn-primary w-full xl:w-auto justify-center text-sm"
-            disabled={!selectedCityId}
-          >
-            Buscar promociones
-          </button>
+              disabled={!selectedCityId}
+            >
+              Buscar promociones
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
     {/* Selección de lugar */}
     <section className="space-y-4 rounded-3xl bg-slate-950/60 p-4 sm:p-6">
@@ -262,7 +312,7 @@ export default function HomePage() {
         {/* Imagen promocional del local: 20% en desktop, arriba en móvil */}
         {selectedPlace && selectedPlace.image && (
           <div className="flex flex-col items-center justify-start xl:w-1/5 w-full mb-4 xl:mb-0">
-            <div className="aspect-[4/3] w-full bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+            <div className="aspect-[4/3] w-full bg-sla           h   h           te-800 rounded-lg border border-slate-700 overflow-hidden">
               <img
                 src={selectedPlace.image}
                 alt="Imagen promocional del local"
@@ -317,14 +367,21 @@ export default function HomePage() {
                 )}
               </div>
               <div className="space-y-2 p-3">
-                <h3 className="text-base font-semibold text-slate-50 line-clamp-2">
+                <h3 className="text-base font-semibold text-slate-50 text-center line-clamp-4 min-h-[4.5em]">
                   {promo.title}
                 </h3>
-                <p className="text-sm text-slate-300 line-clamp-3">{promo.description}</p>
-                <div className="pt-1 flex items-baseline gap-2">
+                <div className="flex flex-col items-center justify-end min-h-[2.5em] mt-2">
+                  <span className="text-xl font-semibold text-white">
+                    {promo.price
+                      .toLocaleString("es-EC", {
+                        style: "currency",
+                        currency: "USD",
+                      })
+                      .replace("US$", "")}
+                  </span>
                   {typeof promo.originalPrice === "number" && (
                     <span className="text-sm text-slate-400 line-through">
-                      ${promo.originalPrice
+                      {promo.originalPrice
                         .toLocaleString("es-EC", {
                           style: "currency",
                           currency: "USD",
@@ -332,18 +389,7 @@ export default function HomePage() {
                         .replace("US$", "")}
                     </span>
                   )}
-                  <span className="text-xl font-semibold text-white">
-                    ${promo.price
-                      .toLocaleString("es-EC", {
-                        style: "currency",
-                        currency: "USD",
-                      })
-                      .replace("US$", "")}
-                  </span>
                 </div>
-                <p className="text-xs text-slate-400">
-                  Promoción informativa. Presenta esta oferta en el punto de venta.
-                </p>
               </div>
             </article>
           ))}
@@ -497,8 +543,12 @@ export default function HomePage() {
         function handleSocialShare(network: string, place: Place | null) {
           if (!place) return;
           let url = "";
-          const text = encodeURIComponent(`¡Descubre las mejores promociones Samsung en ${place.name}, ${place.cityName}!`);
-          const shareUrl = "https://www.samsungecuador.com";
+          let link = "http://localhost:3000";
+          if (place && place.id) {
+            link = `http://localhost:3000/?place=${place.id}#promociones`;
+          }
+          const text = encodeURIComponent(`¡Descubre las mejores promociones en nuestro punto de venta físico Samsung en ${place.name}, ${place.cityName}!`);
+          const shareUrl = link;
           switch (network) {
             case "facebook":
               url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;

@@ -118,8 +118,12 @@ export default function RootLayout({
                   priority
                 />
               </div>
+              
             </div>
+                      <div className="relative items-center text-black font-bold text-center text-xl"> Landing page para potenciar los puntos de ventas en Ecuador</div>
+
           </div>
+
         </header>
         <main className="mx-auto max-w-6xl px-4 py-2 sm:py-8">{children}</main>
       </body>
