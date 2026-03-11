@@ -120,7 +120,7 @@ export default function RootLayout({
               </div>
               
             </div>
-                      <div className="relative items-center text-black font-bold text-center text-xl"> Landing page para potenciar los puntos de ventas en Ecuador</div>
+                      <div className="relative items-center text-black text-center text-lg"> Landing page para potenciar los puntos de ventas en Ecuador</div>
 
           </div>
 

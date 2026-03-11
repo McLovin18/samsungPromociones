@@ -544,9 +544,6 @@ export default function HomePage() {
           if (!place) return;
           let url = "";
           let link = "https://www.samsungecuador.com";
-          if (place && place.id) {
-            link = `https://www.samsungecuador.com/?place=${place.id}#promociones`;
-          }
           const text = encodeURIComponent(`¡Descubre las mejores promociones en nuestro punto de venta físico Samsung en ${place.name}, ${place.cityName}!`);
           const shareUrl = link;
           switch (network) {
