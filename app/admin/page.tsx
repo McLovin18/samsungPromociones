@@ -173,7 +173,7 @@ export default function AdminDashboardPage() {
             {cities.length === 0 && <p className="text-xs text-slate-500">Sin ciudades aún.</p>}
             {cities.map((city) => (
               <div key={city.id} className="space-y-1">
-                <p className="text-xs font-semibold text-slate-800">{city.name}</p>
+                <p className="text-xs font-semibold text-black">{city.name}</p>
                 <p className="pl-3 text-[11px] text-slate-500">
                   {places.filter((p) => p.cityId === city.id).length} puntos de venta
                 </p>
@@ -227,7 +227,7 @@ export default function AdminDashboardPage() {
                   }}
                   className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1.5 text-left text-xs hover:border-samsungBlue/60"
                 >
-                  <span>{city.name}</span>
+                  <span className="text-black">{city.name}</span>
                   <span className="text-[11px] text-slate-500">
                     {places.filter((p) => p.cityId === city.id).length} puntos
                   </span>
