@@ -14,8 +14,7 @@ interface Place {
 interface Promotion {
   id: string;
   title: string;
-  price: number; // precio promocional
-  originalPrice?: number | null; // precio antes de la promo
+  originalPrice?: number | null; // precio del producto
   imageUrl: string;
 }
 
@@ -30,7 +29,6 @@ export default function AdminPromotionsPage() {
 
   const [title, setTitle] = useState("");
   const [previousPrice, setPreviousPrice] = useState<string>("");
-  const [price, setPrice] = useState<string>(""); // precio promocional
   const [imageUrl, setImageUrl] = useState("");
   const [editingPromotionId, setEditingPromotionId] = useState<string | null>(null);
 
@@ -71,7 +69,6 @@ export default function AdminPromotionsPage() {
     setEditingPromotionId(null);
     setTitle("");
     setPreviousPrice("");
-    setPrice("");
     setImageUrl("");
     setPromoModalOpen(true);
   };
@@ -80,11 +77,9 @@ export default function AdminPromotionsPage() {
     e.preventDefault();
     if (!selectedPlace) return;
     const numericPreviousPrice = Number(previousPrice.replace(",", "."));
-    const numericPrice = Number(price.replace(",", "."));
 
     const payload = {
       title: title.trim(),
-      price: numericPrice,
       originalPrice: Number.isNaN(numericPreviousPrice) ? null : numericPreviousPrice,
       imageUrl: imageUrl.trim(),
       placeId: selectedPlace.id,
@@ -118,7 +113,6 @@ export default function AdminPromotionsPage() {
         ? promo.originalPrice.toString()
         : ""
     );
-    setPrice(promo.price.toString());
     setImageUrl(promo.imageUrl || "");
   };
 
@@ -132,7 +126,6 @@ export default function AdminPromotionsPage() {
       setEditingPromotionId(null);
       setTitle("");
       setPreviousPrice("");
-      setPrice("");
       setImageUrl("");
     }
   };
@@ -206,8 +199,7 @@ export default function AdminPromotionsPage() {
           setTitle={setTitle}
           previousPrice={previousPrice}
           setPreviousPrice={setPreviousPrice}
-          price={price}
-          setPrice={setPrice}
+          // price eliminado
           imageUrl={imageUrl}
           setImageUrl={setImageUrl}
           editingPromotionId={editingPromotionId}
@@ -228,8 +220,7 @@ function PromoModal({
   // setDescription,
   previousPrice,
   setPreviousPrice,
-  price,
-  setPrice,
+  // price eliminado
   imageUrl,
   setImageUrl,
   editingPromotionId,
@@ -290,7 +281,7 @@ function PromoModal({
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-slate-700">Precio anterior</label>
+                <label className="text-[11px] font-medium text-slate-700">Precio del producto</label>
                 <input
                   type="text"
                   value={previousPrice}
@@ -298,17 +289,6 @@ function PromoModal({
                   required
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
                   placeholder="899.99"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-slate-700">Precio promocional</label>
-                <input
-                  type="text"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="799.99"
                 />
               </div>
               <div className="space-y-1.5">
@@ -359,12 +339,8 @@ function PromoModal({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold text-slate-50">{promo.title}</p>
                   <div className="mt-1 flex flex-col items-start gap-1 text-xs">
-                    <span className="text-xs font-semibold text-samsungBlue">
-                      $
-                      {promo.price.toLocaleString("es-EC", { minimumFractionDigits: 2 })}
-                    </span>
                     {typeof promo.originalPrice === "number" && (
-                      <span className="text-[11px] text-slate-400 line-through">
+                      <span className="text-xs font-semibold text-samsungBlue">
                         $
                         {promo.originalPrice.toLocaleString("es-EC", {
                           minimumFractionDigits: 2,

@@ -371,16 +371,8 @@ export default function HomePage() {
                   {promo.title}
                 </h3>
                 <div className="flex flex-col items-center justify-end min-h-[2.5em] mt-2">
-                  <span className="text-xl font-semibold text-white">
-                    {promo.price
-                      .toLocaleString("es-EC", {
-                        style: "currency",
-                        currency: "USD",
-                      })
-                      .replace("US$", "")}
-                  </span>
                   {typeof promo.originalPrice === "number" && (
-                    <span className="text-sm text-slate-400 line-through">
+                    <span className="text-2xl font-bold text-white">
                       {promo.originalPrice
                         .toLocaleString("es-EC", {
                           style: "currency",
