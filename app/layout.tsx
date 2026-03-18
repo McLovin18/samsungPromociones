@@ -120,7 +120,8 @@ export default function RootLayout({
               </div>
               
             </div>
-                      <div className="relative items-center text-black text-center text-lg"> Landing page para potenciar los puntos de ventas en Ecuador</div>
+                      <div className="relative items-center text-black text-center text-sm sm:text-xl"> Vive la mejor experiencia en nuestras tiendas: promociones especiales y atención personalizada.
+¡Te esperamos!</div>
 
           </div>
 
