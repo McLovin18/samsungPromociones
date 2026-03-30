@@ -233,6 +233,9 @@ export default function HomePage() {
     return `https://wa.me/${cleaned}`;
   };
 
+  // Ordenar ciudades A-Z por nombre
+  const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+
   return (
     <div className="space-y-10 w-full">
       {/* Countdown de promociones */}
@@ -248,7 +251,7 @@ export default function HomePage() {
               onChange={(e) => setSelectedCityId(e.target.value)}
             >
               <option value="">Selecciona tu ciudad</option>
-              {cities.map((city) => (
+              {sortedCities.map((city) => (
                 <option key={city.id} value={city.id}>
                   {city.name}
                 </option>

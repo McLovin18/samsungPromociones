@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import Script from "next/script";
+import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface City {
@@ -13,6 +12,12 @@ interface City {
 export default function NewsletterSection() {
   const [cities, setCities] = useState<City[]>([]);
   const [selectedCityId, setSelectedCityId] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadCities = async () => {
@@ -25,110 +30,142 @@ export default function NewsletterSection() {
         console.error("Error cargando ciudades para newsletter", err);
       }
     };
-
     loadCities();
   }, []);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+    setSuccess(false);
+
+    if (!name.trim() || !email.trim() || !selectedCityId || !phone.trim()) {
+      setError("Por favor completa todos los campos obligatorios.");
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "clients"), {
+        name: name.trim(),
+        email: email.trim(),
+        city: selectedCityId,
+        phone: phone.trim(),
+        createdAt: serverTimestamp(),
+      });
+      setSuccess(true);
+      setName("");
+      setEmail("");
+      setPhone("");
+      setSelectedCityId("");
+    } catch {
+      setError("Ocurrió un error al registrar. Intenta de nuevo.");
+    }
+
+    setSubmitting(false);
+  };
+
+  // Ordenar ciudades A-Z por nombre
+  const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+
   return (
-    <section className="w-full py-16">
-      <div className="mx-auto max-w-6xl px-4">
+    <section className="w-full py-16 bg-slate-900">
+      <div className="mx-auto max-w-3xl px-4">
         <div className="mb-8 text-center space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
             Mantente informado
           </p>
-          <h2 className="text-xl font-semibold text-slate-50">
+          <h2 className="text-3xl font-bold text-white">
             Suscríbete para recibir las últimas promociones Samsung
           </h2>
         </div>
 
-        <div className="mt-6 flex justify-center">
-          <div
-            id="sp-form-252239"
-            sp-id="252239"
-            sp-hash="53256e582af8cb8b312e85b5d1a4bedd7063fc090c7b1ceddcac3173d3843f43"
-            sp-lang="es-mx"
-            className="sp-form sp-form-regular sp-form-embed sp-form-horizontal"
-          >
-            <div className="sp-form-fields-wrapper">
-              <div className="sp-message">
-                <div></div>
-              </div>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-slate-800 rounded-xl p-6 shadow-lg space-y-4"
+        >
+          {success && (
+            <div className="rounded bg-green-100 px-3 py-2 text-green-800 text-sm font-medium">
+              ¡Gracias por suscribirte!
+            </div>
+          )}
+          {error && (
+            <div className="rounded bg-red-100 px-3 py-2 text-red-800 text-sm font-medium">
+              {error}
+            </div>
+          )}
 
-              <form className="sp-element-container sp-lg">
-                <div className="sp-field">
-                  <label className="sp-control-label">
-                    <span>Tu nombre</span> <strong>*</strong>
-                  </label>
-                  <input
-                    type="text"
-                    name="sform[Tm9tYnJl]"
-                    className="sp-form-control"
-                    placeholder="Nombre completo"
-                    autoComplete="on"
-                    required
-                  />
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-medium text-white">Tu nombre *</label>
+              <input
+                type="text"
+                className="rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-samsungBlue focus:border-samsungBlue"
+                placeholder="Nombre completo"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={submitting}
+              />
+            </div>
 
-                <div className="sp-field">
-                  <label className="sp-control-label">
-                    <span>Ciudad</span> <strong>*</strong>
-                  </label>
-                  <select
-                    name="sform[Z2RwckNvbmZpcm0=]"
-                    className="sp-form-control"
-                    required
-                    value={selectedCityId}
-                    onChange={(e) => setSelectedCityId(e.target.value)}
-                  >
-                    <option value="" disabled>
-                      Selecciona tu ciudad
-                    </option>
-                    {cities.map((city) => (
-                      <option key={city.id} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-medium text-white">Ciudad *</label>
+              <select
+                className="rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-samsungBlue focus:border-samsungBlue"
+                value={selectedCityId}
+                onChange={(e) => setSelectedCityId(e.target.value)}
+                disabled={submitting}
+                required
+              >
+                <option value="" disabled>
+                  Selecciona tu ciudad
+                </option>
+                {sortedCities.map((city) => (
+                  <option key={city.id} value={city.name}>
+                    {city.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                <div className="sp-field">
-                  <label className="sp-control-label">
-                    <span>Correo</span> <strong>*</strong>
-                  </label>
-                  <input
-                    type="email"
-                    name="sform[email]"
-                    className="sp-form-control"
-                    placeholder="username@gmail.com"
-                    autoComplete="on"
-                    required
-                  />
-                </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-medium text-white">Teléfono *</label>
+              <input
+                type="tel"
+                className="rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-samsungBlue focus:border-samsungBlue"
+                placeholder="0991234567"
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={submitting}
+              />
+            </div>
 
-                <div className="sp-field sp-button-container">
-                  <button className="sp-button">Enviar</button>
-                </div>
-              </form>
-
-              <div className="sp-link-wrapper sp-brandname__left mt-3">
-                <a
-                  className="sp-link text-[11px] text-slate-400 hover:text-slate-200"
-                  target="_blank"
-                  href="https://sendpulse.com/forms-powered-by-sendpulse"
-                  rel="noreferrer"
-                >
-                  Entregado por SendPulse
-                </a>
-              </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-medium text-white">Correo *</label>
+              <input
+                type="email"
+                className="rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-samsungBlue focus:border-samsungBlue"
+                placeholder="correo@ejemplo.com"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={submitting}
+              />
             </div>
           </div>
-        </div>
-      </div>
 
-      <Script
-        src="//web.webformscr.com/apps/fc3/build/default-handler.js"
-        strategy="lazyOnload"
-      />
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-3 rounded-lg bg-samsungBlue text-white font-semibold text-lg transition hover:bg-samsungBlue/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting ? "Enviando..." : "Suscribirse"}
+          </button>
+
+        </form>
+      </div>
     </section>
   );
 }

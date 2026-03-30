@@ -92,6 +92,17 @@ export default function AdminLayout({
           >
             Promociones
           </button>
+          <button
+            type="button"
+            onClick={() => router.push("/admin/clientes")}
+            className={`rounded-full px-3 py-1.5 transition ${
+              pathname.startsWith("/admin/clientes")
+                ? "bg-white text-slate-900 shadow-sm"
+                : "bg-slate-800 text-slate-200 hover:bg-slate-700"
+            }`}
+          >
+            Clientes
+          </button>
         </nav>
       </div>
       <div className="space-y-6">{children}</div>
