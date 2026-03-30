@@ -575,7 +575,7 @@ export default function HomePage() {
         {/* Footer del desarrollador */}
         <footer className="mt-8 border-t border-slate-800/50 pt-6 pb-4">
           <div className="flex flex-col items-center gap-3 text-center">
-            <img src="/footer.png" alt="" className="w-1/5"/>
+            <img src="/footer.png" alt="" className="sm:w-1/5 w-4/5"/>
             <p className="text-xs text-slate-500">
               Todos los derechos reservados.
             </p>

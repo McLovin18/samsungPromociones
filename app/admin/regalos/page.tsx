@@ -11,6 +11,7 @@ import {
   doc,
   getDocs,
   where,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Confetti from "react-confetti";
@@ -70,6 +71,12 @@ export default function AdminGiftsPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [confetti, setConfetti] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
+  // NUEVO: cantidad de ganadores y lista de ganadores
+  const [maxWinners, setMaxWinners] = useState(1);
+  const [winners, setWinners] = useState<Client[]>([]);
+  const [allWinners, setAllWinners] = useState<Client[]>([]);
+  // Controla si mostrar el mensaje de sorteo terminado
+  const [showFinished, setShowFinished] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, "gifts"), orderBy("name"));
@@ -105,33 +112,121 @@ export default function AdminGiftsPage() {
   const handleGiftClick = async (gift: Gift) => {
     setSelectedGift(gift);
     setModalOpen(true);
-
+    setWinner(null);
+    setConfetti(false);
+    setHighlightedIndex(null);
+    setShowFinished(false);
+    // Leer ganadores guardados en el documento del regalo
+    const giftDoc = await getDoc(doc(db, "gifts", gift.id));
+    const giftData = giftDoc.data();
+    let savedWinners: Client[] = [];
+    let savedMax = 1;
+    let savedAllWinners: Client[] = [];
+    if (giftData && Array.isArray(giftData.winners)) {
+      savedWinners = giftData.winners;
+    }
+    if (giftData && typeof giftData.maxWinners === "number") {
+      savedMax = giftData.maxWinners;
+    }
+    if (giftData && Array.isArray(giftData.allWinners)) {
+      savedAllWinners = giftData.allWinners;
+    }
+    setWinners(savedWinners);
+    setMaxWinners(savedMax);
+    setAllWinners(savedAllWinners);
+    // Participantes = todos menos los ganadores históricos
     const q = query(
       collection(db, "clients"),
       where("giftId", "==", gift.id)
     );
     const snap = await getDocs(q);
-    setClients(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+    const allClients = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    setClients(allClients.filter(c => !savedAllWinners.some(w => w.id === c.id)));
   };
 
-  const handleDrawWinner = () => {
-    if (clients.length === 0) return;
+  // Volver a sortear: limpia ganadores y actualiza Firestore
+  // Los usuarios que ya ganaron ese regalo nunca vuelven a participar
+  const handleResetWinners = async () => {
+    if (!selectedGift) return;
+    setWinners([]);
+    setWinner(null);
+    setShowFinished(false);
+    setConfetti(false);
+    setHighlightedIndex(null);
+    // Leer todos los ganadores históricos de este regalo
+    const giftDoc = await getDoc(doc(db, "gifts", selectedGift.id));
+    const giftData = giftDoc.data();
+    let savedAllWinners: Client[] = [];
+    if (giftData && Array.isArray(giftData.allWinners)) {
+      savedAllWinners = giftData.allWinners;
+    }
+    setAllWinners(savedAllWinners);
+    // Participantes = todos los clientes con ese giftId que no estén en allWinners
+    const q = query(
+      collection(db, "clients"),
+      where("giftId", "==", selectedGift.id)
+    );
+    const snap = await getDocs(q);
+    const allClients = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+    const filteredClients = allClients.filter(c => !savedAllWinners.some(w => w.id === c.id));
+    setClients(filteredClients);
+    // Limpiar ganadores en Firestore pero mantener maxWinners y actualizar allWinners si no existe
+    await updateDoc(doc(db, "gifts", selectedGift.id), {
+      winners: [],
+      maxWinners: maxWinners,
+      allWinners: savedAllWinners,
+    });
+  };
+
+  const handleDrawWinner = async () => {
+    // Solo sortear si hay participantes y no se ha llegado al máximo
+    if (clients.length === 0 || winners.length >= maxWinners || !selectedGift) return;
 
     setIsDrawing(true);
-    let steps = 40;
+    setWinner(null);
+    setConfetti(false);
+    setShowFinished(false);
+    // Elegir índice ganador aleatorio
+    const winnerIndex = Math.floor(Math.random() * clients.length);
+    let steps = 40 + winnerIndex; // Asegura que termina en el índice ganador
     let i = 0;
 
-    const animate = () => {
+    const animate = async () => {
       setHighlightedIndex(i % clients.length);
       if (steps-- > 0) {
         i++;
         setTimeout(animate, 60 + i * 5);
       } else {
-        const win = clients[i % clients.length];
+        const win = clients[winnerIndex];
         setWinner(win);
+        // Guardar ganadores en Firestore
+        const newWinners = [...winners, win];
+        setWinners(newWinners);
+        setClients((prev) => prev.filter((c) => c.id !== win.id)); // Elimina ganador de la lista
         setHighlightedIndex(null);
         setConfetti(true);
         setIsDrawing(false);
+        // Actualizar en Firestore: winners y allWinners (histórico)
+        const giftDoc = await getDoc(doc(db, "gifts", selectedGift.id));
+        const giftData = giftDoc.data();
+        let allWinners: Client[] = [];
+        if (giftData && Array.isArray(giftData.allWinners)) {
+          allWinners = giftData.allWinners;
+        }
+        // Agregar el nuevo ganador al histórico si no está
+        const updatedAllWinners = allWinners.some(w => w.id === win.id) ? allWinners : [...allWinners, win];
+        updateDoc(doc(db, "gifts", selectedGift.id), {
+          winners: newWinners,
+          maxWinners: maxWinners,
+          allWinners: updatedAllWinners,
+        });
+        // Si es el último ganador, mostrar mensaje después de confetti
+        if (newWinners.length >= maxWinners) {
+          setTimeout(() => {
+            setConfetti(false);
+            setShowFinished(true);
+          }, 2500); // 2.5 segundos de confetti antes de mostrar mensaje
+        }
       }
     };
 
@@ -222,7 +317,71 @@ export default function AdminGiftsPage() {
           Participantes - {selectedGift?.name}
         </h3>
 
-        {clients.length === 0 ? (
+        {/* Campo para cantidad de ganadores */}
+        <div className="mb-4 flex items-center gap-2">
+          <label className="text-black font-semibold">Cantidad de ganadores:</label>
+          <input
+            type="number"
+            min={1}
+            max={clients.length + winners.length || 1}
+            value={maxWinners}
+            onChange={async e => {
+              const val = Math.max(1, Math.min(Number(e.target.value), clients.length + winners.length || 1));
+              setMaxWinners(val);
+              setWinners(w => w.slice(0, val));
+              // Guardar nuevo máximo y recorte de ganadores en Firestore si hay un regalo seleccionado
+              if (selectedGift) {
+                await updateDoc(doc(db, "gifts", selectedGift.id), {
+                  maxWinners: val,
+                  winners: winners.slice(0, val),
+                });
+              }
+            }}
+            className="input w-20 text-black"
+            disabled={isDrawing || (winners.length >= maxWinners && !confetti)}
+          />
+        </div>
+
+        {/* Lista de ganadores históricos y actuales */}
+        {(allWinners.length > 0 || winners.length > 0) && (
+          <div className="mb-4">
+            <h4 className="text-green-700 font-bold">Ganadores:</h4>
+            <ul className="list-disc pl-5">
+              {/* Ganadores del sorteo actual (enfasis fuerte) */}
+              {winners.map((w, i) => (
+                <li key={w.id} className="text-black font-bold">
+                  {i + 1}. {w.name} <span className="text-xs text-slate-600">({w.email})</span>
+                  <span className="ml-2 text-green-600 font-semibold">(Actual)</span>
+                </li>
+              ))}
+              {/* Ganadores históricos (menos énfasis, solo si no están en winners) */}
+              {allWinners.filter(w => !winners.some(cw => cw.id === w.id)).map((w, i) => (
+                <li key={w.id} className="text-slate-400">
+                  {w.name} <span className="text-xs">({w.email})</span>
+                  <span className="ml-2 text-slate-400">(Anterior)</span>
+                </li>
+              ))}
+            </ul>
+            {winners.length >= maxWinners && !confetti && (
+              <>
+                <div className="mt-2 text-center text-lg font-bold text-blue-700">Sorteo terminado</div>
+                <div className="flex justify-center mt-2">
+                  <button
+                    className="btn-primary"
+                    onClick={handleResetWinners}
+                  >
+                    Volver a sortear
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Participantes restantes */}
+        {winners.length >= maxWinners && !confetti ? (
+          <div className="text-black text-center font-semibold"></div>
+        ) : clients.length === 0 ? (
           <p className="text-black">No hay participantes</p>
         ) : (
           <>
@@ -233,10 +392,6 @@ export default function AdminGiftsPage() {
                   className={`p-3 rounded-lg border transition ${
                     highlightedIndex === idx
                       ? "bg-yellow-200 scale-105"
-                      : ""
-                  } ${
-                    winner?.id === c.id
-                      ? "bg-green-300 scale-110 font-bold"
                       : ""
                   }`}
                 >
@@ -250,9 +405,10 @@ export default function AdminGiftsPage() {
 
             <button
               onClick={handleDrawWinner}
-              className="btn-primary w-full mt-4"
+              className={`btn-primary w-full mt-4 ${winners.length >= maxWinners || clients.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={winners.length >= maxWinners || clients.length === 0 || isDrawing}
             >
-              🎉 Sortear ganador
+              {winners.length >= maxWinners ? 'Cantidad máxima' : '🎉 Sortear ganador'}
             </button>
 
             {winner && (
@@ -260,7 +416,12 @@ export default function AdminGiftsPage() {
                 <h4 className="text-2xl font-bold text-green-600">
                   🎉 Ganador
                 </h4>
-                <p className="text-lg">{winner.name}</p>
+                <div className="mt-2 text-lg font-semibold text-slate-900">
+                  {winner.name}
+                </div>
+                <div className="text-base text-slate-700">
+                  {winner.email}
+                </div>
               </div>
             )}
 
