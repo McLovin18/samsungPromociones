@@ -240,8 +240,8 @@ export default function AdminGiftsPage() {
                       : ""
                   }`}
                 >
-                  <p>{c.name}</p>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-black">{c.name}</p>
+                  <p className="text-xs text-black">
                     {c.email}
                   </p>
                 </div>

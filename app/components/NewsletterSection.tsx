@@ -52,11 +52,24 @@ export default function NewsletterSection() {
     loadActiveGift();
   }, []);
 
+  const canRegister = () => {
+    const last = localStorage.getItem("newsletter_last_submit");
+    if (!last) return true;
+    const lastTime = parseInt(last, 10);
+    return Date.now() - lastTime > 5 * 60 * 1000; // 5 minutos
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError("");
     setSuccess(false);
+
+    if (!canRegister()) {
+      setError("Debes esperar 5 minutos antes de volver a registrarte.");
+      setSubmitting(false);
+      return;
+    }
 
     if (!name.trim() || !email.trim() || !selectedCityId || !phone.trim()) {
       setError("Por favor completa todos los campos obligatorios.");
@@ -85,6 +98,7 @@ export default function NewsletterSection() {
         clientData.giftId = activeGift.id;
       }
       await addDoc(collection(db, "clients"), clientData);
+      localStorage.setItem("newsletter_last_submit", Date.now().toString());
       setSuccess(true);
       setName("");
       setEmail("");

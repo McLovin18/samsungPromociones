@@ -40,7 +40,7 @@ export default function GiftPopup({ onClose, onRegister }: { onClose: () => void
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" strokeWidth="2" d="M6 6l12 12M6 18L18 6"/></svg>
         </button>
         <div className="flex flex-col items-center text-center space-y-4">
-          <img src={gift.image} alt={gift.name} className="w-32 h-32 object-cover rounded-xl shadow-lg border-4 border-samsungBlue animate-pop" />
+          <img src={gift.image} alt={gift.name} className="w-45 h-45 sm:w-32 sm:h-32 object-cover rounded-xl shadow-lg border-4 border-samsungBlue animate-pop" />
           <h2 className="text-2xl font-bold text-samsungBlue animate-fadeIn">{gift.name}</h2>
           <p className="text-slate-700 text-base animate-fadeIn delay-100">{gift.description}</p>
           <button
