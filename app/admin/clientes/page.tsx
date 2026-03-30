@@ -11,6 +11,7 @@ interface Client {
   city: string;
   phone?: string;
   createdAt?: any;
+  gift?: { id: string; name: string };
 }
 
 export default function AdminClientsPage() {
@@ -48,13 +49,14 @@ export default function AdminClientsPage() {
               <th className="px-4 py-3 text-left font-semibold text-slate-700 uppercase tracking-wide">Correo</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700 uppercase tracking-wide">Teléfono</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700 uppercase tracking-wide">Ciudad</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700 uppercase tracking-wide">Registro regalo</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700 uppercase tracking-wide">Fecha registro</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-slate-100">
             {clients.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-3 text-center text-slate-500">
+                <td colSpan={6} className="px-4 py-3 text-center text-slate-500">
                   Aún no hay registros.
                 </td>
               </tr>
@@ -65,6 +67,7 @@ export default function AdminClientsPage() {
                 <td className="px-4 py-2 text-slate-800">{client.email}</td>
                 <td className="px-4 py-2 text-slate-800">{client.phone || "-"}</td>
                 <td className="px-4 py-2 text-slate-800">{client.city}</td>
+                <td className="px-4 py-2 text-slate-800">{client.gift ? client.gift.name : '-'}</td>
                 <td className="px-4 py-2 text-slate-600">{formatDate(client.createdAt)}</td>
               </tr>
             ))}

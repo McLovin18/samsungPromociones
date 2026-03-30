@@ -18,6 +18,7 @@ export default function NewsletterSection() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [activeGift, setActiveGift] = useState<{id: string, name: string} | null>(null);
 
   useEffect(() => {
     const loadCities = async () => {
@@ -31,6 +32,24 @@ export default function NewsletterSection() {
       }
     };
     loadCities();
+
+    // Buscar regalo activo
+    const loadActiveGift = async () => {
+      try {
+        const q = query(collection(db, "gifts"), where("popupActive", "==", true));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          // Solo uno puede estar activo
+          const docData = snap.docs[0].data();
+          setActiveGift({ id: snap.docs[0].id, name: docData.name });
+        } else {
+          setActiveGift(null);
+        }
+      } catch (err) {
+        setActiveGift(null);
+      }
+    };
+    loadActiveGift();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,13 +73,18 @@ export default function NewsletterSection() {
         setSubmitting(false);
         return;
       }
-      await addDoc(collection(db, "clients"), {
+      const clientData: any = {
         name: name.trim(),
         email: email.trim(),
         city: selectedCityId,
         phone: phone.trim(),
         createdAt: serverTimestamp(),
-      });
+      };
+      if (activeGift) {
+        clientData.gift = activeGift;
+        clientData.giftId = activeGift.id;
+      }
+      await addDoc(collection(db, "clients"), clientData);
       setSuccess(true);
       setName("");
       setEmail("");

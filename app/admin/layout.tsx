@@ -103,6 +103,17 @@ export default function AdminLayout({
           >
             Clientes
           </button>
+          <button
+            type="button"
+            onClick={() => router.push("/admin/regalos")}
+            className={`rounded-full px-3 py-1.5 transition ${
+              pathname.startsWith("/admin/regalos")
+                ? "bg-white text-slate-900 shadow-sm"
+                : "bg-slate-800 text-slate-200 hover:bg-slate-700"
+            }`}
+          >
+            Regalos
+          </button>
         </nav>
       </div>
       <div className="space-y-6">{children}</div>
