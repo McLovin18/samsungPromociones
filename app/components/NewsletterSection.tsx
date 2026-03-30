@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, addDoc, serverTimestamp, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface City {
@@ -46,6 +46,14 @@ export default function NewsletterSection() {
     }
 
     try {
+      // Validar si ya existe el correo
+      const q = query(collection(db, "clients"), where("email", "==", email.trim()));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        setError("Ya hay alguien inscrito con ese correo.");
+        setSubmitting(false);
+        return;
+      }
       await addDoc(collection(db, "clients"), {
         name: name.trim(),
         email: email.trim(),
