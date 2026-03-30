@@ -14,12 +14,18 @@ interface Place {
   name: string;
   cityId: string;
   cityName: string;
-  locationUrl?: string;
+  locationUrl?: string | null;
   phone?: string | null;
   email?: string | null;
   storeName?: string | null;
   address?: string | null;
   image?: string | null;
+  localHours?: Array<{
+    dayFrom: string;
+    dayTo: string;
+    hourFrom: string;
+    hourTo: string;
+  }> | null;
 }
 
 export default function AdminDashboardPage() {
@@ -31,6 +37,8 @@ export default function AdminDashboardPage() {
   const [placeModalOpen, setPlaceModalOpen] = useState(false);
 
   const [newCityName, setNewCityName] = useState("");
+  const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
+
   const [newPlaceName, setNewPlaceName] = useState("");
   const [newPlaceLocationUrl, setNewPlaceLocationUrl] = useState("");
   const [newPlacePhone, setNewPlacePhone] = useState("");
@@ -38,12 +46,16 @@ export default function AdminDashboardPage() {
   const [newPlaceStoreName, setNewPlaceStoreName] = useState("");
   const [newPlaceAddress, setNewPlaceAddress] = useState("");
   const [newPlaceImage, setNewPlaceImage] = useState("");
-  const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
+  const [newPlaceHours, setNewPlaceHours] = useState<Array<{ dayFrom: string; dayTo: string; hourFrom: string; hourTo: string }>>([
+    { dayFrom: "", dayTo: "", hourFrom: "", hourTo: "" },
+  ]);
 
+  // --- Snapshot de ciudades y lugares ---
   useEffect(() => {
     const unsubCities = onSnapshot(query(collection(db, "cities"), orderBy("name")), (snap) => {
       setCities(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
     });
+
     const unsubPlaces = onSnapshot(query(collection(db, "places"), orderBy("name")), (snap) => {
       setPlaces(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
     });
@@ -56,18 +68,38 @@ export default function AdminDashboardPage() {
 
   const selectedCity = cities.find((c) => c.id === activeCityId) ?? null;
 
-  const handleCreateCity = async () => {
-    if (!newCityName.trim()) return;
-    await addDoc(collection(db, "cities"), {
-      name: newCityName.trim(),
-      createdAt: new Date(),
-    });
-    setNewCityName("");
-    setCityModalOpen(false);
+  // --- Reset formularios de lugar ---
+  const resetPlaceForm = () => {
+    setEditingPlaceId(null);
+    setNewPlaceName("");
+    setNewPlaceLocationUrl("");
+    setNewPlacePhone("");
+    setNewPlaceEmail("");
+    setNewPlaceStoreName("");
+    setNewPlaceAddress("");
+    setNewPlaceImage("");
+    setNewPlaceHours([{ dayFrom: "", dayTo: "", hourFrom: "", hourTo: "" }]);
   };
 
+  // --- Crear ciudad ---
+  const handleCreateCity = async () => {
+    if (!newCityName.trim()) return;
+    try {
+      await addDoc(collection(db, "cities"), {
+        name: newCityName.trim(),
+        createdAt: new Date(),
+      });
+      setNewCityName("");
+      setCityModalOpen(false);
+    } catch (error) {
+      console.error("Error al crear ciudad:", error);
+    }
+  };
+
+  // --- Crear / Editar lugar ---
   const handleCreatePlace = async () => {
     if (!newPlaceName.trim() || !selectedCity) return;
+
     const payload = {
       name: newPlaceName.trim(),
       cityId: selectedCity.id,
@@ -78,65 +110,54 @@ export default function AdminDashboardPage() {
       storeName: newPlaceStoreName.trim() || null,
       address: newPlaceAddress.trim() || null,
       image: newPlaceImage.trim() || null,
+      localHours:
+        newPlaceHours.filter((h) => h.dayFrom && h.dayTo && h.hourFrom && h.hourTo).length > 0
+          ? newPlaceHours.filter((h) => h.dayFrom && h.dayTo && h.hourFrom && h.hourTo)
+          : null,
     };
 
-    if (editingPlaceId) {
-      await updateDoc(doc(db, "places", editingPlaceId), payload);
-    } else {
-      await addDoc(collection(db, "places"), {
-        ...payload,
-        createdAt: new Date(),
-      });
+    try {
+      if (editingPlaceId) {
+        await updateDoc(doc(db, "places", editingPlaceId), payload);
+      } else {
+        await addDoc(collection(db, "places"), { ...payload, createdAt: new Date() });
+      }
+      resetPlaceForm();
+      setPlaceModalOpen(false);
+    } catch (error) {
+      console.error("Error al guardar lugar:", error);
     }
-    setNewPlaceName("");
-    setNewPlaceLocationUrl("");
-    setNewPlacePhone("");
-    setNewPlaceEmail("");
-    setNewPlaceStoreName("");
-    setNewPlaceAddress("");
-    setNewPlaceImage("");
-    setEditingPlaceId(null);
-    setPlaceModalOpen(false);
   };
+
+  // --- Map de lugares por ciudad para eficiencia ---
+  const placesByCity = places.reduce((acc, p) => {
+    if (!acc[p.cityId]) acc[p.cityId] = [];
+    acc[p.cityId].push(p);
+    return acc;
+  }, {} as Record<string, Place[]>);
 
   return (
     <div className="space-y-6">
-
-
+      {/* --- Sección principal --- */}
       <section className="grid gap-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        {/* --- Ciudades --- */}
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                Ciudades de Ecuador
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ciudades de Ecuador</p>
               <p className="text-sm text-slate-700">Comienza creando las ciudades donde Samsung tiene presencia.</p>
             </div>
-            <button
-              onClick={() => {
-                setCityModalOpen(true);
-              }}
-              className="btn-primary text-xs px-3 py-1.5"
-            >
-              Crear ciudad
-            </button>
+            <button onClick={() => setCityModalOpen(true)} className="btn-primary text-xs px-3 py-1.5">Crear ciudad</button>
           </div>
+
           <div className="mt-2 space-y-1 text-sm">
-            {cities.length === 0 && (
-              <p className="text-xs text-slate-500">Aún no hay ciudades creadas.</p>
-            )}
+            {cities.length === 0 && <p className="text-xs text-slate-500">Aún no hay ciudades creadas.</p>}
             {cities.map((city) => (
               <button
                 key={city.id}
                 onClick={() => {
                   setActiveCityId(city.id);
-                  setEditingPlaceId(null);
-                  setNewPlaceName("");
-                  setNewPlaceLocationUrl("");
-                  setNewPlacePhone("");
-                  setNewPlaceEmail("");
-                  setNewPlaceStoreName("");
-                  setNewPlaceAddress("");
+                  resetPlaceForm();
                   setPlaceModalOpen(true);
                 }}
                 className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs hover:border-samsungBlue/60"
@@ -148,12 +169,11 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
+        {/* --- Resumen rápido --- */}
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                Resumen rápido
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Resumen rápido</p>
               <p className="text-sm text-slate-700">Estructura actual</p>
             </div>
           </div>
@@ -170,25 +190,19 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="mt-2 max-h-72 space-y-2 overflow-auto rounded-xl border border-slate-100 bg-slate-50 p-3">
-            {cities.length === 0 && <p className="text-xs text-slate-500">Sin ciudades aún.</p>}
             {cities.map((city) => (
               <div key={city.id} className="space-y-1">
                 <p className="text-xs font-semibold text-black">{city.name}</p>
-                <p className="pl-3 text-[11px] text-slate-500">
-                  {places.filter((p) => p.cityId === city.id).length} puntos de venta
-                </p>
+                <p className="pl-3 text-[11px] text-slate-500">{placesByCity[city.id]?.length || 0} puntos de venta</p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* --- Modal de Ciudad --- */}
       {cityModalOpen && (
-        <Modal
-          onClose={() => {
-            setCityModalOpen(false);
-          }}
-          title="Crear ciudad"
-        >
+        <Modal title="Crear ciudad" onClose={() => setCityModalOpen(false)}>
           <div className="space-y-4 text-sm">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-700">Nueva ciudad</label>
@@ -200,37 +214,23 @@ export default function AdminDashboardPage() {
                 placeholder="Quito, Guayaquil, Cuenca…"
               />
               <div className="flex justify-end pt-1 text-xs">
-                <button onClick={handleCreateCity} className="btn-primary px-4 py-1.5">
-                  Guardar ciudad
-                </button>
+                <button onClick={handleCreateCity} className="btn-primary px-4 py-1.5">Guardar ciudad</button>
               </div>
             </div>
 
             <div className="max-h-64 space-y-2 overflow-auto rounded-lg border border-slate-100 bg-slate-50 p-2">
-              {cities.length === 0 && (
-                <p className="text-xs text-slate-500">Aún no hay ciudades creadas.</p>
-              )}
               {cities.map((city) => (
                 <button
                   key={city.id}
                   onClick={() => {
                     setActiveCityId(city.id);
-                    setEditingPlaceId(null);
-                    setNewPlaceName("");
-                    setNewPlaceLocationUrl("");
-                    setNewPlacePhone("");
-                    setNewPlaceEmail("");
-                    setNewPlaceStoreName("");
-                    setNewPlaceAddress("");
-                    setNewPlaceImage("");
+                    resetPlaceForm();
                     setPlaceModalOpen(true);
                   }}
                   className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1.5 text-left text-xs hover:border-samsungBlue/60"
                 >
                   <span className="text-black">{city.name}</span>
-                  <span className="text-[11px] text-slate-500">
-                    {places.filter((p) => p.cityId === city.id).length} puntos
-                  </span>
+                  <span className="text-[11px] text-slate-500">{placesByCity[city.id]?.length || 0} puntos</span>
                 </button>
               ))}
             </div>
@@ -238,23 +238,11 @@ export default function AdminDashboardPage() {
         </Modal>
       )}
 
+      {/* --- Modal de Lugar --- */}
       {placeModalOpen && selectedCity && (
-        <Modal
-          onClose={() => {
-            setPlaceModalOpen(false);
-            setActiveCityId(null);
-            setEditingPlaceId(null);
-            setNewPlaceName("");
-            setNewPlaceLocationUrl("");
-            setNewPlacePhone("");
-            setNewPlaceEmail("");
-            setNewPlaceStoreName("");
-            setNewPlaceAddress("");
-            setNewPlaceImage("");
-          }}
-          title={`Lugares en ${selectedCity.name}`}
-        >
+        <Modal title={`Lugares en ${selectedCity.name}`} onClose={() => { setPlaceModalOpen(false); setActiveCityId(null); resetPlaceForm(); }}>
           <div className="space-y-4 text-sm">
+            {/* Nombre del lugar */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-700">
                 {editingPlaceId ? "Editar lugar / punto" : "Nuevo lugar / punto"}
@@ -266,117 +254,116 @@ export default function AdminDashboardPage() {
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
                 placeholder="Samsung Mall del Sol, Samsung Quicentro…"
               />
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-medium text-slate-700">URL de ubicación (Google Maps)</label>
-                <input
-                  type="url"
-                  value={newPlaceLocationUrl}
-                  onChange={(e) => setNewPlaceLocationUrl(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="https://maps.google.com/..."
-                />
-                <p className="text-[11px] text-slate-500">
-                  Este enlace se mostrará al cliente como botón de "Ubicación" en la landing.
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-medium text-slate-700">Teléfono de contacto (WhatsApp)</label>
-                <input
-                  type="tel"
-                  value={newPlacePhone}
-                  onChange={(e) => setNewPlacePhone(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="Ej: +593 99 123 4567"
-                />
-                <p className="text-[11px] text-slate-500">
-                  Se usará para abrir un chat de WhatsApp cuando el cliente toque el ícono de teléfono.
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-medium text-slate-700">Correo de contacto</label>
-                <input
-                  type="email"
-                  value={newPlaceEmail}
-                  onChange={(e) => setNewPlaceEmail(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="Ej: promociones@samsung.com"
-                />
-                <p className="text-[11px] text-slate-500">
-                  Se mostrará como correo de contacto y se abrirá el cliente de correo al tocar el ícono.
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-medium text-slate-700">Nombre del local Samsung</label>
-                <input
-                  type="text"
-                  value={newPlaceStoreName}
-                  onChange={(e) => setNewPlaceStoreName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="Ej: Samsung Store"
-                />
-                <p className="text-[11px] text-slate-500">
-                  Nombre que se mostrará dentro de la tarjeta del centro comercial.
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-medium text-slate-700">Dirección del local</label>
-                <input
-                  type="text"
-                  value={newPlaceAddress}
-                  onChange={(e) => setNewPlaceAddress(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="Ej: Av. Principal y Calle 10, Local 25"
-                />
-                <p className="text-[11px] text-slate-500">
-                  Dirección que se mostrará como referencia en la tarjeta.
-                </p>
-              </div>
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-medium text-slate-700">Imagen promocional del local</label>
-                <input
-                  type="url"
-                  value={newPlaceImage}
-                  onChange={(e) => setNewPlaceImage(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="https://ejemplo.com/imagen-promocional.png"
-                />
-                <p className="text-[11px] text-slate-500">
-                  URL de la imagen promocional que el cliente presentará en el local para validar su promoción.
-                </p>
-              </div>
-              <div className="flex justify-end pt-1 text-xs">
-                <button onClick={handleCreatePlace} className="btn-primary px-4 py-1.5">
-                  {editingPlaceId ? "Actualizar lugar" : "Guardar lugar"}
-                </button>
-              </div>
             </div>
 
+            {/* Horarios */}
+            <div className="space-y-1.5 pt-2">
+              <label className="text-xs font-medium text-slate-700">Horario del local</label>
+              {newPlaceHours.map((h, idx) => (
+                <div key={idx} className="flex flex-wrap gap-2 items-end mb-2">
+                  {["dayFrom", "dayTo", "hourFrom", "hourTo"].map((field) => (
+                    <div key={field}>
+                      <label className="block text-[11px] text-slate-600">
+                        {field === "dayFrom" ? "Día desde" : field === "dayTo" ? "Día hasta" : field === "hourFrom" ? "Hora desde" : "Hora hasta"}
+                      </label>
+                      {field.includes("day") ? (
+                        <select
+                          value={h[field as keyof typeof h]}
+                          onChange={(e) => {
+                            const arr = [...newPlaceHours];
+                            arr[idx][field as keyof typeof h] = e.target.value;
+                            setNewPlaceHours(arr);
+                          }}
+                          className="rounded border text-black  px-2 py-1 text-xs"
+                        >
+                          <option value="">--</option>
+                          {["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"].map(d => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="time"
+                          value={h[field as keyof typeof h]}
+                          onChange={(e) => {
+                            const arr = [...newPlaceHours];
+                            arr[idx][field as keyof typeof h] = e.target.value;
+                            setNewPlaceHours(arr);
+                          }}
+                          className="text-black rounded border px-2 py-1 text-xs"
+                        />
+                      )}
+                    </div>
+                  ))}
+                  {newPlaceHours.length > 1 && (
+                    <button type="button" className="ml-2 text-xs text-red-500 font-bold" onClick={() => setNewPlaceHours(newPlaceHours.filter((_, i) => i !== idx))}>
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                className="mt-1 px-2 py-1 rounded bg-samsungBlue text-white text-xs font-semibold hover:bg-samsungBlue/80 transition"
+                onClick={() => setNewPlaceHours([...newPlaceHours, { dayFrom: "", dayTo: "", hourFrom: "", hourTo: "" }])}
+              >
+                + Agregar horario
+              </button>
+              <p className="text-[11px] text-slate-500 mt-1">
+                Ejemplo: Lunes a Sábado, 10:00 a 20:00. Puedes agregar varios bloques para diferentes días.
+              </p>
+            </div>
+
+            {/* Imagen */}
+            <div className="space-y-1.5 pt-2">
+              <label className="text-xs font-medium text-slate-700">Imagen promocional del local</label>
+              <input
+                type="url"
+                value={newPlaceImage}
+                onChange={(e) => setNewPlaceImage(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                placeholder="https://ejemplo.com/imagen-promocional.png"
+              />
+              <p className="text-[11px] text-slate-500">
+                URL de la imagen promocional que el cliente presentará en el local para validar su promoción.
+              </p>
+            </div>
+
+            {/* Guardar */}
+            <div className="flex justify-end pt-1 text-xs">
+              <button onClick={handleCreatePlace} className="btn-primary px-4 py-1.5">
+                {editingPlaceId ? "Actualizar lugar" : "Guardar lugar"}
+              </button>
+            </div>
+
+            {/* Listado de lugares */}
             <div className="max-h-64 space-y-1.5 overflow-auto rounded-lg border border-slate-100 bg-slate-50 p-2">
-              {places.filter((p) => p.cityId === selectedCity.id).length === 0 && (
-                <p className="text-xs text-slate-500">Aún no hay lugares en esta ciudad.</p>
-              )}
-              {places
-                .filter((p) => p.cityId === selectedCity.id)
-                .map((place) => (
-                  <button
-                    key={place.id}
-                    type="button"
-                    onClick={() => {
-                      setEditingPlaceId(place.id);
-                      setNewPlaceName(place.name || "");
-                      setNewPlaceLocationUrl(place.locationUrl || "");
-                      setNewPlacePhone(place.phone || "");
-                      setNewPlaceEmail(place.email || "");
-                      setNewPlaceStoreName(place.storeName || "");
-                      setNewPlaceAddress(place.address || "");
-                      setNewPlaceImage(place.image || "");
-                    }}
-                    className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs hover:border-samsungBlue/60"
-                  >
-                    <span className="font-medium text-slate-900">{place.name}</span>
-                    <span className="text-[11px] text-slate-600">{selectedCity.name}</span>
-                  </button>
-                ))}
+              {(placesByCity[selectedCity.id]?.length || 0) === 0 && <p className="text-xs text-slate-500">Aún no hay lugares en esta ciudad.</p>}
+              {placesByCity[selectedCity.id]?.map((place) => (
+                <button
+                  key={place.id}
+                  type="button"
+                  onClick={() => {
+                    setEditingPlaceId(place.id);
+                    setNewPlaceName(place.name || "");
+                    setNewPlaceLocationUrl(place.locationUrl || "");
+                    setNewPlacePhone(place.phone || "");
+                    setNewPlaceEmail(place.email || "");
+                    setNewPlaceStoreName(place.storeName || "");
+                    setNewPlaceAddress(place.address || "");
+                    setNewPlaceImage(place.image || "");
+                    setNewPlaceHours(
+                      place.localHours && place.localHours.length > 0
+                        ? place.localHours
+                        : [{ dayFrom: "", dayTo: "", hourFrom: "", hourTo: "" }]
+                    );
+                  }}
+                  className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs hover:border-samsungBlue/60"
+                >
+                  <span className="font-medium text-slate-900">{place.name}</span>
+                  <span className="text-[11px] text-slate-600">{selectedCity.name}</span>
+                </button>
+              ))}
             </div>
           </div>
         </Modal>

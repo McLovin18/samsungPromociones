@@ -335,7 +335,11 @@ export default function HomePage() {
         id="promociones"
         className="space-y-6 w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-2xl shadow-black/40 sm:p-6"
       >
-    
+      {selectedPlace && (
+        <div className="flex flex-col items-center justify-center mb-4">
+          <Countdown />
+        </div>
+      )}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-base text-slate-200 flex flex-wrap items-center gap-2">
@@ -355,6 +359,20 @@ export default function HomePage() {
                     <GoogleMapsIcon className="h-4 w-4 text-samsungBlue" />
                     Ubicación
                   </a>
+                )}
+                {selectedPlace.localHours && Array.isArray(selectedPlace.localHours) && selectedPlace.localHours.length > 0 && (
+                  <span className="ml-2 flex flex-wrap gap-1">
+                    {selectedPlace.localHours.map((h, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 rounded-full bg-slate-100/80 border border-slate-300 px-3 py-0.5 text-xs font-semibold text-slate-700 shadow-sm">
+                        <svg className="w-4 h-4 text-samsungBlue" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        {h.dayFrom === h.dayTo ? h.dayFrom : `${h.dayFrom} a ${h.dayTo}`}
+                        {": "}
+                        {h.hourFrom.slice(0,5)}
+                        {" - "}
+                        {h.hourTo.slice(0,5)}
+                      </span>
+                    ))}
+                  </span>
                 )}
               </>
             )}
@@ -467,19 +485,19 @@ export default function HomePage() {
                 href={selectedPlace.locationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-samsungBlue hover:bg-samsungBlue/80 hover:shadow-samsungBlue/40 animate-pulse-slow"
                 title="Ver ubicación"
               >
-                <GoogleMapsIcon className="h-5 w-5" />
+                <GoogleMapsIcon className="h-6 w-6" />
               </a>
             )}
             {selectedPlace.phone && (
               <a
                 href={`tel:${selectedPlace.phone}`}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-samsungBlue hover:bg-samsungBlue/80 hover:shadow-samsungBlue/40 animate-pulse-slow"
                 title="Llamar"
               >
-                <PhoneContactIcon className="h-5 w-5" />
+                <PhoneContactIcon className="h-6 w-6" />
               </a>
             )}
             {selectedPlace.phone && (
@@ -487,21 +505,30 @@ export default function HomePage() {
                 href={getWhatsAppUrl(selectedPlace.phone)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-green-500 hover:bg-green-600 hover:shadow-green-400/40 animate-pulse-slow"
                 title="WhatsApp"
               >
-                <WhatsAppContactIcon className="h-5 w-5" />
+                <WhatsAppContactIcon className="h-6 w-6" />
               </a>
             )}
             {selectedPlace.email && (
               <a
                 href={`mailto:${selectedPlace.email}`}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-transparent text-slate-300 transition hover:border-slate-400 hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-samsungBlue hover:bg-samsungBlue/80 hover:shadow-samsungBlue/40 animate-pulse-slow"
                 title="Enviar email"
               >
-                <MailContactIcon className="h-5 w-5" />
+                <MailContactIcon className="h-6 w-6" />
               </a>
             )}
+          <style jsx global>{`
+            @keyframes pulse-slow {
+              0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
+              50% { opacity: 0.85; box-shadow: 0 0 16px 4px rgba(255,255,255,0.25); }
+            }
+            .animate-pulse-slow {
+              animation: pulse-slow 2.2s cubic-bezier(0.4,0,0.6,1) infinite;
+            }
+          `}</style>
           </div>
         </div>
       )}
@@ -513,7 +540,7 @@ export default function HomePage() {
     {/* Footer del desarrollador */}
     <footer className="mt-8 border-t border-slate-800/50 pt-6 pb-4">
       <div className="flex flex-col items-center gap-3 text-center">
-        <img src="/footer_img.png" alt="" className="w-1/5"/>
+        <img src="/footer.png" alt="" className="w-1/5"/>
         <p className="text-xs text-slate-500">
           Todos los derechos reservados.
         </p>
