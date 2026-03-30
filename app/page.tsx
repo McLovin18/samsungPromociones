@@ -1,5 +1,38 @@
 "use client";
+
+import { doc, getDoc } from "firebase/firestore";
+
+
+
+
+// Hook para countdown
+function useCountdown(targetDate: Date) {
+  const [timeLeft, setTimeLeft] = useState<{days: number, hours: number, minutes: number, seconds: number}>(() => {
+    const diff = Math.max(0, targetDate.getTime() - Date.now());
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+    return { days, hours, minutes, seconds };
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const diff = Math.max(0, targetDate.getTime() - Date.now());
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      setTimeLeft({ days, hours, minutes, seconds });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+  return timeLeft;
+}
+
 import NewsletterSection from "./components/NewsletterSection";
+import dynamic from "next/dynamic";
+const Countdown = dynamic(() => import("./components/Countdown"), { ssr: false });
 import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -33,6 +66,26 @@ interface Promotion {
 }
 
 export default function HomePage() {
+            // Countdown dinámico desde Firestore
+            const [countdownHours, setCountdownHours] = useState<number>(14);
+            useEffect(() => {
+              const fetchCountdown = async () => {
+                try {
+                  const ref = doc(db, "settings", "countdown");
+                  const snap = await getDoc(ref);
+                  if (snap.exists()) {
+                    setCountdownHours(snap.data().hours || 14);
+                  }
+                } catch (e) { console.error(e); }
+              };
+              fetchCountdown();
+            }, []);
+            const countdownTarget = useMemo(() => {
+              const now = new Date();
+              now.setSeconds(0, 0);
+              return new Date(now.getTime() + countdownHours * 60 * 60 * 1000);
+            }, [countdownHours]);
+            const countdown = useCountdown(countdownTarget);
           // Lista global de todos los lugares
       const [allPlaces, setAllPlaces] = useState<Place[]>([]);
 
@@ -182,6 +235,8 @@ export default function HomePage() {
 
   return (
     <div className="space-y-10 w-full">
+      {/* Countdown de promociones */}
+      <Countdown />
       {/* Selección de ciudad */}
       <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
         <div className="space-y-3 text-center">
@@ -458,8 +513,9 @@ export default function HomePage() {
     {/* Footer del desarrollador */}
     <footer className="mt-8 border-t border-slate-800/50 pt-6 pb-4">
       <div className="flex flex-col items-center gap-3 text-center">
+        <img src="/footer_img.png" alt="" className="w-1/5"/>
         <p className="text-xs text-slate-500">
-          © {new Date().getFullYear()} Promociones Samsung Ecuador. Todos los derechos reservados.
+          Todos los derechos reservados.
         </p>
         <a 
           href="https://grupoecualink.com" 

@@ -1,5 +1,8 @@
 "use client";
 
+import { getDoc, setDoc } from "firebase/firestore";
+
+
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -19,6 +22,28 @@ interface Promotion {
 }
 
 export default function AdminPromotionsPage() {
+    // Countdown settings
+    const [countdownHours, setCountdownHours] = useState<number>(14);
+    const [loadingCountdown, setLoadingCountdown] = useState(true);
+    useEffect(() => {
+      const fetchCountdown = async () => {
+        try {
+          const ref = doc(db, "settings", "countdown");
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            setCountdownHours(snap.data().hours || 14);
+          }
+        } catch (e) { console.error(e); }
+        setLoadingCountdown(false);
+      };
+      fetchCountdown();
+    }, []);
+
+    const handleCountdownChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = Number(e.target.value);
+      setCountdownHours(value);
+      await setDoc(doc(db, "settings", "countdown"), { hours: value });
+    };
   const [places, setPlaces] = useState<Place[]>([]);
   const [search, setSearch] = useState("");
 
@@ -132,6 +157,21 @@ export default function AdminPromotionsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Configuración del contador */}
+      <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">Configuración del contador regresivo</h2>
+        <label className="block text-xs font-medium text-slate-700 mb-1">Duración del contador (horas):</label>
+        <input
+          type="number"
+          min={1}
+          max={168}
+          value={countdownHours}
+          onChange={handleCountdownChange}
+          disabled={loadingCountdown}
+          className="w-24 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+        />
+        <p className="text-[11px] text-slate-500 mt-1">El landing mostrará siempre un conteo regresivo desde este valor cada vez que un usuario entra.</p>
+      </section>
       <section className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Gestión de promociones
