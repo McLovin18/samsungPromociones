@@ -168,7 +168,7 @@ export default function NewsletterSection() {
                   Selecciona tu ciudad
                 </option>
                 {sortedCities.map((city) => (
-                  <option key={city.id} value={city.name}>
+                  <option key={city.id} value={city.id}>
                     {city.name}
                   </option>
                 ))}
