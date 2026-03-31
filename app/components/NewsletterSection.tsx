@@ -104,8 +104,15 @@ export default function NewsletterSection() {
       setEmail("");
       setPhone("");
       setSelectedCityId("");
-    } catch {
-      setError("Ocurrió un error al registrar. Intenta de nuevo.");
+    } catch (err: any) {
+      let msg = "Ocurrió un error al registrar. Intenta de nuevo.";
+      if (err && typeof err === "object" && err.message) {
+        msg += `\n${err.message}`;
+      } else if (typeof err === "string") {
+        msg += `\n${err}`;
+      }
+      setError(msg);
+      console.error("Error al registrar newsletter:", err);
     }
 
     setSubmitting(false);
