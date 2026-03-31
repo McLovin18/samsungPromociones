@@ -19,6 +19,7 @@ export default function NewsletterSection() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [activeGift, setActiveGift] = useState<{id: string, name: string} | null>(null);
+  const [debugData, setDebugData] = useState<any>(null);
 
   useEffect(() => {
     const loadCities = async () => {
@@ -97,6 +98,7 @@ export default function NewsletterSection() {
         clientData.gift = activeGift;
         clientData.giftId = activeGift.id;
       }
+      setDebugData(clientData); // Mostrar datos en pantalla para depuración
       await addDoc(collection(db, "clients"), clientData);
       localStorage.setItem("newsletter_last_submit", Date.now().toString());
       setSuccess(true);
@@ -104,6 +106,7 @@ export default function NewsletterSection() {
       setEmail("");
       setPhone("");
       setSelectedCityId("");
+      setDebugData(null);
     } catch (err: any) {
       let msg = "Ocurrió un error al registrar. Intenta de nuevo.";
       if (err && typeof err === "object" && err.message) {
@@ -112,6 +115,7 @@ export default function NewsletterSection() {
         msg += `\n${err}`;
       }
       setError(msg);
+      setDebugData(null);
       console.error("Error al registrar newsletter:", err);
     }
 
@@ -137,6 +141,12 @@ export default function NewsletterSection() {
           onSubmit={handleSubmit}
           className="bg-slate-800 rounded-xl p-6 shadow-lg space-y-4"
         >
+          {debugData && (
+            <div className="rounded bg-yellow-100 px-3 py-2 text-yellow-800 text-xs font-mono mb-2">
+              <b>Debug datos enviados:</b>
+              <pre>{JSON.stringify(debugData, null, 2)}</pre>
+            </div>
+          )}
           {success && (
             <div className="rounded bg-green-100 px-3 py-2 text-green-800 text-sm font-medium">
               ¡Gracias por suscribirte!
