@@ -98,7 +98,10 @@ export default function NewsletterSection() {
     setPhone("");
     setSelectedCityId("");
   } catch (err: any) {
-    if (err.code === "already-exists") {
+    // Mostrar mensaje específico si el error es de correo duplicado
+    if (err.code === "already-exists" || err.status === 409) {
+      setError("Este correo ya está registrado.");
+    } else if (err.message && err.message.includes("ya está registrado")) {
       setError("Este correo ya está registrado.");
     } else {
       setError("Ocurrió un error al registrar. Intenta de nuevo.");
