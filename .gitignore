@@ -1,3 +1,5 @@
+# Ignorar todo lo de functions
+/functions/
 # Dependencias
 node_modules/
 

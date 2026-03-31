@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, addDoc, serverTimestamp, query, where } from "firebase/firestore";
+import { collection, getDocs, serverTimestamp, query, where } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app } from "@/lib/firebase";
 import { db } from "@/lib/firebase";
 
 interface City {
@@ -19,7 +21,7 @@ export default function NewsletterSection() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [activeGift, setActiveGift] = useState<{id: string, name: string} | null>(null);
-  const [debugData, setDebugData] = useState<any>(null);
+  // Debug panel y config eliminados para producción
 
   useEffect(() => {
     const loadCities = async () => {
@@ -61,66 +63,53 @@ export default function NewsletterSection() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError("");
-    setSuccess(false);
+  e.preventDefault();
+  setSubmitting(true);
+  setError("");
+  setSuccess(false);
 
-    if (!canRegister()) {
-      setError("Debes esperar 5 minutos antes de volver a registrarte.");
-      setSubmitting(false);
-      return;
-    }
-
-    if (!name.trim() || !email.trim() || !selectedCityId || !phone.trim()) {
-      setError("Por favor completa todos los campos obligatorios.");
-      setSubmitting(false);
-      return;
-    }
-
-    try {
-      // Validar si ya existe el correo
-      const q = query(collection(db, "clients"), where("email", "==", email.trim()));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        setError("Ya hay alguien inscrito con ese correo.");
-        setSubmitting(false);
-        return;
-      }
-      const clientData: any = {
-        name: name.trim(),
-        email: email.trim(),
-        city: selectedCityId,
-        phone: phone.trim(),
-        createdAt: serverTimestamp(),
-      };
-      if (activeGift) {
-        clientData.gift = activeGift;
-        clientData.giftId = activeGift.id;
-      }
-      setDebugData(clientData); // Mostrar datos en pantalla para depuración
-      await addDoc(collection(db, "clients"), clientData);
-      localStorage.setItem("newsletter_last_submit", Date.now().toString());
-      setSuccess(true);
-      setName("");
-      setEmail("");
-      setPhone("");
-      setSelectedCityId("");
-      setDebugData(null);
-    } catch (err: any) {
-      let msg = "Ocurrió un error al registrar. Intenta de nuevo.";
-      if (err && typeof err === "object" && err.message) {
-        msg += `\n${err.message}`;
-      } else if (typeof err === "string") {
-        msg += `\n${err}`;
-      }
-      setError(msg);
-      setDebugData(null);
-      console.error("Error al registrar newsletter:", err);
-    }
-
+  if (!canRegister()) {
+    setError("Debes esperar 5 minutos antes de volver a registrarte.");
     setSubmitting(false);
-  };
+    return;
+  }
+
+  if (!name.trim() || !email.trim() || !selectedCityId || !phone.trim()) {
+    setError("Por favor completa todos los campos obligatorios.");
+    setSubmitting(false);
+    return;
+  }
+
+  try {
+    const functions = getFunctions(app);
+    const registerNewsletter = httpsCallable(functions, "registerNewsletter");
+    await registerNewsletter({
+      name: name.trim(),
+      email: email.trim(),
+      city: selectedCityId,
+      phone: phone.trim(),
+      gift: activeGift,
+      giftId: activeGift?.id,
+    });
+    localStorage.setItem("newsletter_last_submit", Date.now().toString());
+    setSuccess(true);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setSelectedCityId("");
+  } catch (err: any) {
+    if (err.code === "already-exists") {
+      setError("Este correo ya está registrado.");
+    } else {
+      setError("Ocurrió un error al registrar. Intenta de nuevo.");
+    }
+    setSubmitting(false);
+    return;
+  }
+
+  setSubmitting(false);
+};
+
 
   // Ordenar ciudades A-Z por nombre
   const sortedCities = [...cities].sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -141,12 +130,7 @@ export default function NewsletterSection() {
           onSubmit={handleSubmit}
           className="bg-slate-800 rounded-xl p-6 shadow-lg space-y-4"
         >
-          {debugData && (
-            <div className="rounded bg-yellow-100 px-3 py-2 text-yellow-800 text-xs font-mono mb-2">
-              <b>Debug datos enviados:</b>
-              <pre>{JSON.stringify(debugData, null, 2)}</pre>
-            </div>
-          )}
+          {/* Debug panel eliminado para producción */}
           {success && (
             <div className="rounded bg-green-100 px-3 py-2 text-green-800 text-sm font-medium">
               ¡Gracias por suscribirte!
