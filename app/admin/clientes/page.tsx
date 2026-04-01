@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface Client {
@@ -9,6 +9,7 @@ interface Client {
   name: string;
   email: string;
   city: string;
+  cityName?: string;
   phone?: string;
   createdAt?: any;
   gift?: { id: string; name: string };
@@ -18,11 +19,32 @@ export default function AdminClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      setClients(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
-    });
-    return () => unsub();
+    let unsub: any = null;
+    const load = async () => {
+      // Cargar ciudades para obtener nombres
+      const citiesSnap = await getDocs(collection(db, "cities"));
+      const cityMap = new Map<string, string>();
+      citiesSnap.docs.forEach((c) => {
+        const data = c.data() as any;
+        cityMap.set(c.id, data.name || "");
+      });
+
+      const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
+      unsub = onSnapshot(q, (snap) => {
+        setClients(
+          snap.docs.map((d) => {
+            const data = d.data() as any;
+            return {
+              id: d.id,
+              ...data,
+              cityName: cityMap.get(data.city) || data.city,
+            } as Client;
+          })
+        );
+      });
+    };
+    load();
+    return () => { if (unsub) unsub(); };
   }, []);
 
   const formatDate = (timestamp: any) => {
@@ -66,7 +88,7 @@ export default function AdminClientsPage() {
                 <td className="px-4 py-2 text-slate-800">{client.name}</td>
                 <td className="px-4 py-2 text-slate-800">{client.email}</td>
                 <td className="px-4 py-2 text-slate-800">{client.phone || "-"}</td>
-                <td className="px-4 py-2 text-slate-800">{client.city}</td>
+                <td className="px-4 py-2 text-slate-800">{client.cityName || client.city}</td>
                 <td className="px-4 py-2 text-slate-800">{client.gift ? client.gift.name : '-'}</td>
                 <td className="px-4 py-2 text-slate-600">{formatDate(client.createdAt)}</td>
               </tr>
