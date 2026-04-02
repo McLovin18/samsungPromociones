@@ -33,7 +33,6 @@ function useCountdown(targetDate: Date) {
 import NewsletterSection from "./components/NewsletterSection";
 import GiftPopup from "./components/GiftPopup";
 import dynamic from "next/dynamic";
-const Countdown = dynamic(() => import("./components/Countdown"), { ssr: false });
 import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -270,8 +269,6 @@ export default function HomePage() {
         <GiftPopup onClose={handleGiftPopupClose} onRegister={handleGiftPopupRegister} />
       )}
       <div className="mx-auto max-w-9xl px-4" id="newsletter">
-        {/* Countdown de promociones */}
-        <Countdown />
         {/* Selección de ciudad */}
         <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
           <div className="space-y-3 text-center">
@@ -372,7 +369,6 @@ export default function HomePage() {
         >
           {selectedPlace && (
             <div className="flex flex-col items-center justify-center mb-4">
-              <Countdown />
             </div>
           )}
           <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">

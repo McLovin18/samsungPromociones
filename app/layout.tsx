@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-const Countdown = dynamic(() => import("./components/Countdown"), { ssr: false });
 import type { Metadata } from "next";
 import "./globals.css";
 import Image from "next/image";
@@ -124,7 +123,6 @@ export default function RootLayout({
             </div>
                       <div className="relative items-center text-black text-center text-sm sm:text-xl"> Vive la mejor experiencia en nuestras tiendas: promociones especiales y atención personalizada.
 ¡Te esperamos!
-                        <Countdown />
                       </div>
 
           </div>
