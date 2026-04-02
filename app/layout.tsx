@@ -110,14 +110,16 @@ export default function RootLayout({
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-center px-4 py-3 sm:py-4">
             <div className="flex flex-col items-center gap-1.5">
               <div className="relative h-10 w-40 sm:h-12 sm:w-48">
-                <Image
-                  src="/logoSamsung.png"
-                  alt="Samsung"
-                  fill
-                  sizes="192px"
-                  className="object-contain"
-                  priority
-                />
+                <a href="/">
+                  <Image
+                    src="/logoSamsung.png"
+                    alt="Samsung"
+                    fill
+                    sizes="192px"
+                    className="object-contain"
+                    priority
+                  />
+                </a>
               </div>
               
             </div>
