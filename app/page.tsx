@@ -413,8 +413,8 @@ export default function HomePage() {
           <div className="flex flex-col xl:flex-row w-full gap-12 xl:gap-16">
             {/* Imagen promocional del local: 20% en desktop, arriba en móvil */}
             {selectedPlace && selectedPlace.image && (
-              <div className="flex flex-col items-center justify-start xl:w-1/5 w-full mb-4 xl:mb-0">
-                <div className="aspect-[4/3] w-full bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+              <div className="flex flex-col items-center justify-start w-full mb-4 xl:mb-0 xl:w-[19%] max-w-[220px] sm:max-w-[320px] mx-auto">
+                <div className="aspect-[4/3] w-full max-h-[180px] sm:max-h-[220px] bg-slate-800 rounded-lg xl:rounded-none border border-slate-700 overflow-hidden mx-auto">
                   <img
                     src={selectedPlace.image}
                     alt="Imagen promocional del local"

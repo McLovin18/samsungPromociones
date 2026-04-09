@@ -12,7 +12,7 @@ initializeApp({
 const db = getFirestore();
 
 // Configura estos valores según tu base de datos
-const SOURCE_PLACE_ID = 'n940nYOEpSJbh1NepYFj'; // Mall de los Andes (Ambato)
+const SOURCE_PLACE_ID = 'R7g7tnIbvHQagnnAb7OL'; // Kiosko Samsung - Bahía Malecón 2000
 const PROMOTIONS_COLLECTION = 'promotions';
 const PLACES_COLLECTION = 'places';
 
