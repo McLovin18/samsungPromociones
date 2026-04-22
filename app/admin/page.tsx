@@ -242,22 +242,84 @@ export default function AdminDashboardPage() {
       {placeModalOpen && selectedCity && (
         <Modal title={`Lugares en ${selectedCity.name}`} onClose={() => { setPlaceModalOpen(false); setActiveCityId(null); resetPlaceForm(); }}>
           <div className="space-y-4 text-sm">
-            {/* Nombre del lugar */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700">
-                {editingPlaceId ? "Editar lugar / punto" : "Nuevo lugar / punto"}
-              </label>
-              <input
-                type="text"
-                value={newPlaceName}
-                onChange={(e) => setNewPlaceName(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                placeholder="Samsung Mall del Sol, Samsung Quicentro…"
-              />
-            </div>
+            {/* Scroll interno solo para campos de formulario */}
+            <div className="max-h-80 overflow-y-auto pr-2 space-y-4">
+              {/* Nombre del lugar */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">
+                  {editingPlaceId ? "Editar lugar / punto" : "Nuevo lugar / punto"}
+                </label>
+                <input
+                  type="text"
+                  value={newPlaceName}
+                  onChange={(e) => setNewPlaceName(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="Samsung Mall del Sol, Samsung Quicentro…"
+                />
+              </div>
 
-            {/* Horarios */}
-            <div className="space-y-1.5 pt-2">
+              {/* Dirección */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">Dirección</label>
+                <input
+                  type="text"
+                  value={newPlaceAddress}
+                  onChange={(e) => setNewPlaceAddress(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="Piso 1 junto al Patio de Comidas y Multicines"
+                />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">Email</label>
+                <input
+                  type="email"
+                  value={newPlaceEmail}
+                  onChange={(e) => setNewPlaceEmail(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="kiosk.malldelnorte@mirgor.com"
+                />
+              </div>
+
+              {/* Teléfono */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">Teléfono</label>
+                <input
+                  type="text"
+                  value={newPlacePhone}
+                  onChange={(e) => setNewPlacePhone(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="593992118682"
+                />
+              </div>
+
+              {/* Nombre del local (storeName) */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">Nombre del local (opcional)</label>
+                <input
+                  type="text"
+                  value={newPlaceStoreName}
+                  onChange={(e) => setNewPlaceStoreName(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="Av. Francisco de Orellana Mz. 2576 / Nivel 2, Isla 215"
+                />
+              </div>
+
+              {/* URL de ubicación */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">URL de ubicación (Google Maps)</label>
+                <input
+                  type="url"
+                  value={newPlaceLocationUrl}
+                  onChange={(e) => setNewPlaceLocationUrl(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                  placeholder="https://maps.google.com/..."
+                />
+              </div>
+
+              {/* Horarios */}
+              <div className="space-y-1.5 pt-2">
               <label className="text-xs font-medium text-slate-700">Horario del local</label>
               {newPlaceHours.map((h, idx) => (
                 <div key={idx} className="flex flex-wrap gap-2 items-end mb-2">
@@ -334,6 +396,7 @@ export default function AdminDashboardPage() {
               <button onClick={handleCreatePlace} className="btn-primary px-4 py-1.5">
                 {editingPlaceId ? "Actualizar lugar" : "Guardar lugar"}
               </button>
+            </div>
             </div>
 
             {/* Listado de lugares */}
