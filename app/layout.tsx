@@ -112,7 +112,7 @@ export default function RootLayout({
             <div className="grid grid-cols-5 gap-4 w-full items-center">
               {/* 20% - Imagen de Ecuador */}
               <div className="flex items-center justify-center">
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                <div className="relative w-12 h-12 sm:w-12 sm:h-12">
                   <Image
                     src="/logoS.png"
                     alt="Ecuador"

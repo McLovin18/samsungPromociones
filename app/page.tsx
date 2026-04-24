@@ -473,7 +473,7 @@ export default function HomePage() {
                 >
                   Descargar cupón
                 </button>
-                <p className="mt-8 text-xs bg-white border-white rounded-lg text-black font-bold text-center leading-relaxed max-w-[180px]">
+                <p className="mt-8 text-xs bg-white border-white rounded-lg text-black font-bold text-center p-2 leading-relaxed max-w-[180px]">
                   Presenta el cupón o aviso que descargaste en el local que seleccionaste para obtener tu descuento.
                 </p>
               </div>
@@ -485,7 +485,7 @@ export default function HomePage() {
                 Te presentamos las Ofertas Top de nuestros productos disponibles en tu tienda favorita.
           
               </h1>
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-white p-4 border-white rounded-lg font-bold">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-white p-2 border-white rounded-lg font-bold">
               {loadingPromotions && <p className="text-sm text-slate-400">Cargando promociones…</p>}
               {!loadingPromotions && selectedPlaceId && promotions.length === 0 && (
                 <p className="text-sm text-slate-400">
