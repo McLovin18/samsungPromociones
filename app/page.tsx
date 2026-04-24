@@ -382,11 +382,11 @@ export default function HomePage() {
           className="space-y-6 w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-2xl shadow-black/40 sm:p-6"
         >
           {selectedPlace && (
-            <div className="flex flex-col items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center mb-4">
             </div>
           )}
-          <div className="flex flex-row items-center gap-6">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-start gap-4 md:gap-4">              
+              <div className="flex flex-col gap-1">
               <p className="text-base text-slate-200 flex flex-wrap items-center gap-2">
                 <span className="font-medium">
                   {selectedCity ? selectedCity.name : ""}
@@ -429,7 +429,7 @@ export default function HomePage() {
                 href={getWhatsAppUrl(selectedPlace.phone)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-green-500/40 bg-white/90 text-green-600 font-semibold text-base hover:bg-green-600 hover:text-white hover:border-green-600 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap flex-shrink-0"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-green-500/40 bg-white/90 text-green-600 font-semibold text-sm md:text-base hover:bg-green-600 hover:text-white hover:border-green-600 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap self-start md:self-center flex-shrink-0"
               >
                 <WhatsAppContactIcon className="h-3 w-3" />
                 Contactar
@@ -441,12 +441,12 @@ export default function HomePage() {
           <div className="flex flex-col xl:flex-row w-full gap-12 xl:gap-16 ">
             {/* Imagen promocional del local: 20% en desktop, arriba en móvil */}
             {selectedPlace && selectedPlace.image && (
-              <div className="flex flex-col items-center justify-start w-full mb-4 xl:mb-0 xl:w-[22%] max-w-[270px] sm:max-w-[400px] mx-auto">
-                <div className="w-full bg-slate-800 rounded-2xl border border- overflow-hidden mx-auto flex items-center justify-center">
+              <div className="flex flex-col items-center justify-start mb-4 xl:mb-0 xl:w-[22%] mx-auto">                
+                <div className="inline-flex bg-slate-800 rounded-2xl overflow-hidden mx-auto">                  
                   <img
                     src={selectedPlace.image}
                     alt="Imagen promocional del local"
-                    className="max-w-full max-h-[400px] object-contain mx-auto rounded-2xl"
+                    className="h-auto max-h-[70vh] w-auto object-contain rounded-2xl"
                     style={{ display: 'block' }}
                   />
                 </div>
@@ -546,7 +546,11 @@ export default function HomePage() {
                         )}
                       </div>
                       <a
-                        href={`https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Hola%2C%20estoy%20interesado%20en%20comprar%20el%20producto%3A%20${encodeURIComponent(promo.title)}${promo.price ? `%20-%20${encodeURIComponent(promo.price.toString())}` : ''}`}
+                        href={
+                          selectedPlace?.phone
+                            ? `https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Hola%2C%20estoy%20interesado%20en%20comprar%20el%20producto%3A%20${encodeURIComponent(promo.title)}${promo.price ? `%20-%20${encodeURIComponent(promo.price.toString())}` : ''}`
+                            : "#"
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full bg-samsungBlue hover:bg-blue-700 text-white font-semibold text-sm py-1.5 px-3 rounded-lg transition-all duration-200 text-center block flex-shrink-0"
