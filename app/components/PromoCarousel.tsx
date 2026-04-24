@@ -9,7 +9,7 @@ const slides = [
     alt: "Promoción Samsung 1",
   },
   {
-    src: "/promo1.png",
+    src: "/promo_1.jpeg",
     alt: "Promoción Samsung 2",
   },
   {

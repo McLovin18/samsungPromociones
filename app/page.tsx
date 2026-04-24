@@ -287,7 +287,7 @@ export default function HomePage() {
       {/* Promociones al inicio */}
       <PromoCarousel />
 
-      <div className="mx-auto max-w-9xl px-4" id="newsletter">
+      <div className="mx-auto max-w-8xl px-4" id="newsletter">
         {/* Selección de ciudad */}
         <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
           <div className="space-y-3 text-center">
@@ -447,7 +447,7 @@ export default function HomePage() {
           </div>
 
           {/* Layout de promociones + iconos */}
-          <div className="flex flex-col xl:flex-row w-full gap-12 xl:gap-16 ">
+          <div className="flex flex-col xl:flex-row w-full gap-6 xl:gap-8 ">
             {/* Imagen promocional del local: 20% en desktop, arriba en móvil */}
             {selectedPlace && selectedPlace.image && (
               <div className="flex flex-col items-center justify-start mb-4 xl:mb-0 xl:w-[22%] mx-auto">                
@@ -487,11 +487,12 @@ export default function HomePage() {
                 </p>
               </div>
             )}
-            {/* Productos promocionales: 60% en desktop */}
+            {/* Productos promocionales: 80% en desktop */}
             {selectedPlaceId && (
-            <div className="xl:w-3/5 w-full">
+            <div className="xl:w-4/5 w-full">
               <h1 className="text-lg font-bold text-white mb-4 text-center">
                 Te presentamos las Ofertas Top de nuestros productos disponibles en tu tienda favorita.
+                Cotiza con nosotros.<br/>
           
               </h1>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-white p-2 border-white rounded-lg font-bold">
@@ -503,6 +504,7 @@ export default function HomePage() {
               )}
               {promotions.map((promo) => {
                 // Calcular porcentaje de descuento
+                const cuota = promo.price ? (promo.price / 12).toFixed(2) : null;
                 const discount = 
                   promo.price && promo.originalPrice && promo.originalPrice > promo.price
                     ? Math.round(((promo.originalPrice - promo.price) / promo.originalPrice) * 100)
@@ -532,25 +534,53 @@ export default function HomePage() {
                       <h3 className="text-base font-semibold text-black text-center line-clamp-4 min-h-[6rem] flex items-center justify-center">
                         {promo.title}
                       </h3>
-                      <div className="flex flex-col items-center justify-center gap-1 flex-grow">
-                        {typeof promo.originalPrice === "number" && (
-                          <span className="text-sm font-medium text-slate-600 line-through">
-                            {promo.originalPrice
-                              .toLocaleString("es-EC", {
-                                style: "currency",
-                                currency: "USD",
-                              })
-                              .replace("US$", "")}
+                      <div className="flex flex-col items-center justify-center gap-1 flex-grow text-center">
+                        
+                        {/* Cuotas */}
+                        <span className="text-xl font-semibold text-slate-500">
+                          12 cuotas sin intereses
+                        </span>
+
+                        {cuota && (
+                          <span className="text-xl md:text-4xl font-bold text-slate-700">
+                            ${cuota}
                           </span>
                         )}
+
+
+
                         {typeof promo.price === "number" && (
-                          <span className="text-2xl font-bold text-samsungBlue">
-                            {promo.price
-                              .toLocaleString("es-EC", {
-                                style: "currency",
-                                currency: "USD",
-                              })
-                              .replace("US$", "")}
+                          <div className="flex items-center justify-center gap-2">
+                            
+                            <span className="text-lg font-medium text-slate-500">
+                              Precio especial: 
+                            </span>
+
+                            <span className="text-3xl font-bold text-samsungBlue leading-tight">
+                              {promo.price
+                                .toLocaleString("es-EC", {
+                                  style: "currency",
+                                  currency: "USD",
+                                })
+                                .replace("US$", "")}
+                            </span>
+
+                          </div>
+                        )}
+
+
+                      {/* Precio anterior */}
+                        {typeof promo.originalPrice === "number" && (
+                          <span className="text-lg text-slate-500">
+                            Precio anterior: {" "}
+                            <span className="line-through text-sm">
+                              {promo.originalPrice
+                                .toLocaleString("es-EC", {
+                                  style: "currency",
+                                  currency: "USD",
+                                })
+                                .replace("US$", "")}
+                            </span>
                           </span>
                         )}
                       </div>
@@ -568,7 +598,7 @@ export default function HomePage() {
                         rel="noopener noreferrer"
                         className="w-full bg-samsungBlue hover:bg-blue-700 text-white font-semibold text-sm py-1.5 px-3 rounded-lg transition-all duration-200 text-center block flex-shrink-0"
                       >
-                        Comprar ahora
+                        Cotizar ahora
                       </a>
                     </div>
                   </article>
@@ -578,80 +608,110 @@ export default function HomePage() {
             </div>
             )}
 
-            {/* Iconos de redes sociales: 20% en desktop, fila horizontal en móvil */}
-            {selectedPlace && (
-              <aside className="xl:w-1/5 w-full mt-4 xl:mt-0 xl:flex xl:flex-col xl:items-center xl:justify-start xl:gap-4 flex flex-col gap-2 items-center">
-                <p className="text-sm font-semibold text-slate-300 mb-2 xl:mb-0">COMPARTIR</p>
-                <div className="flex flex-row xl:flex-col gap-3 xl:gap-4">
-                  <SocialButton icon={<FacebookIcon className="h-5 w-5" />} label="Facebook" onClick={() => handleSocialShare('facebook', selectedPlace)} />
-                  <SocialButton icon={<XIcon className="h-5 w-5" />} label="X" onClick={() => handleSocialShare('twitter', selectedPlace)} />
-                  <SocialButton icon={<InstagramIcon className="h-5 w-5" />} label="Instagram" onClick={() => handleSocialShare('instagram', selectedPlace)} />
-                  <SocialButton icon={<WhatsAppIcon className="h-5 w-5" />} label="WhatsApp" onClick={() => handleSocialShare('whatsapp', selectedPlace)} />
-                  <SocialButton icon={<TelegramIcon className="h-5 w-5" />} label="Telegram" onClick={() => handleSocialShare('telegram', selectedPlace)} />
-                </div>
-              </aside>
-            )}
           </div>
 
-          {/* Contacto del punto de venta */}
           {selectedPlace && (selectedPlace.phone || selectedPlace.email) && (
-            <div className="mt-4 border-t border-slate-800/70 pt-4 flex flex-col items-center xl:items-start gap-3">
-              <span className="text-xs font-medium text-slate-400 tracking-wide uppercase">Contacto del punto de venta</span>
-              <div className="flex flex-wrap justify-center xl:justify-start gap-3">
-                {selectedPlace.locationUrl && (
-                  <a
-                    href={selectedPlace.locationUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-samsungBlue hover:bg-samsungBlue/80 hover:shadow-samsungBlue/40 animate-pulse-slow"
-                    title="Ver ubicación"
-                  >
-                    <GoogleMapsIcon className="h-6 w-6" />
-                  </a>
-                )}
-                {selectedPlace.phone && (
-                  <a
-                    href={`tel:${selectedPlace.phone}`}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-samsungBlue hover:bg-samsungBlue/80 hover:shadow-samsungBlue/40 animate-pulse-slow"
-                    title="Llamar"
-                  >
-                    <PhoneContactIcon className="h-6 w-6" />
-                  </a>
-                )}
-                {selectedPlace.phone && (
-                  <a
-                    href={
-                      selectedPlace?.phone
-                        ? `https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Vengo%20desde%20www.samsungecuador.com%20-%20Cotizarme%20los%20siguientes%20productos%3A`
-                        : "#"
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-green-500 hover:bg-green-600 hover:shadow-green-400/40 animate-pulse-slow"
-                    title="WhatsApp"
-                  >
-                    <WhatsAppContactIcon className="h-6 w-6" />
-                  </a>
-                )}
-                {selectedPlace.email && (
-                  <a
-                    href={`mailto:${selectedPlace.email}`}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-samsungBlue hover:bg-samsungBlue/80 hover:shadow-samsungBlue/40 animate-pulse-slow"
-                    title="Enviar email"
-                  >
-                    <MailContactIcon className="h-6 w-6" />
-                  </a>
-                )}
+            <div className="mt-6 border-t border-slate-800/70 pt-6 w-full">
+              
+              <div className="flex flex-col xl:flex-row gap-6 xl:gap-10 justify-center xl:justify-start items-center xl:items-start">
+                
+                {/* CONTACTO */}
+                <div className="flex flex-col items-center xl:items-start gap-3">
+                  <span className="text-xs font-medium text-slate-400 tracking-wide uppercase">
+                    Contacto del punto de venta
+                  </span>
+
+                  <div className="flex flex-wrap justify-center xl:justify-start gap-3">
+                    {selectedPlace.locationUrl && (
+                      <a
+                        href={selectedPlace.locationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="icon-btn"
+                        title="Ver ubicación"
+                      >
+                        <GoogleMapsIcon className="h-6 w-6" />
+                      </a>
+                    )}
+
+                    {selectedPlace.phone && (
+                      <a
+                        href={`tel:${selectedPlace.phone}`}
+                        className="icon-btn"
+                        title="Llamar"
+                      >
+                        <PhoneContactIcon className="h-6 w-6" />
+                      </a>
+                    )}
+
+                    {selectedPlace.phone && (
+                      <a
+                        href={`https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Vengo%20desde%20www.samsungecuador.com%20-%20Cotizarme%20los%20siguientes%20productos%3A`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="icon-btn hover:border-green-500 hover:bg-green-600 hover:shadow-green-400/40"
+                        title="WhatsApp"
+                      >
+                        <WhatsAppContactIcon className="h-6 w-6" />
+                      </a>
+                    )}
+
+                    {selectedPlace.email && (
+                      <a
+                        href={`mailto:${selectedPlace.email}`}
+                        className="icon-btn"
+                        title="Enviar email"
+                      >
+                        <MailContactIcon className="h-6 w-6" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* COMPARTIR */}
+                <div className="flex flex-col items-center xl:items-start gap-3">
+                  <span className="text-xs font-medium text-slate-400 tracking-wide uppercase">
+                    Compartir
+                  </span>
+
+                  <div className="flex flex-wrap justify-center xl:justify-start gap-3">
+                    <SocialButton icon={<FacebookIcon className="h-5 w-5" />} label="Facebook" onClick={() => handleSocialShare('facebook', selectedPlace)} />
+                    <SocialButton icon={<XIcon className="h-5 w-5" />} label="X" onClick={() => handleSocialShare('twitter', selectedPlace)} />
+                    <SocialButton icon={<InstagramIcon className="h-5 w-5" />} label="Instagram" onClick={() => handleSocialShare('instagram', selectedPlace)} />
+                    <SocialButton icon={<WhatsAppIcon className="h-5 w-5" />} label="WhatsApp" onClick={() => handleSocialShare('whatsapp', selectedPlace)} />
+                    <SocialButton icon={<TelegramIcon className="h-5 w-5" />} label="Telegram" onClick={() => handleSocialShare('telegram', selectedPlace)} />
+                  </div>
+                </div>
+
+              </div>
+
+              {/* estilos reutilizables */}
               <style jsx global>{`
-                @keyframes pulse-slow {
-                  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
-                  50% { opacity: 0.85; box-shadow: 0 0 16px 4px rgba(255,255,255,0.25); }
-                }
-                .animate-pulse-slow {
+                .icon-btn {
+                  display: inline-flex;
+                  height: 44px;
+                  width: 44px;
+                  align-items: center;
+                  justify-content: center;
+                  border-radius: 9999px;
+                  border: 1px solid rgb(71 85 105);
+                  background: rgba(255,255,255,0.1);
+                  color: white;
+                  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+                  transition: all 0.2s;
                   animation: pulse-slow 2.2s cubic-bezier(0.4,0,0.6,1) infinite;
                 }
+                .icon-btn:hover {
+                  transform: scale(1.1);
+                  border-color: #1d4ed8;
+                  background: rgba(29,78,216,0.8);
+                  box-shadow: 0 0 16px rgba(29,78,216,0.4);
+                }
+                @keyframes pulse-slow {
+                  0%, 100% { opacity: 1; }
+                  50% { opacity: 0.85; }
+                }
               `}</style>
-              </div>
             </div>
           )}
         </section>
