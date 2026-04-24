@@ -430,19 +430,19 @@ export default function HomePage() {
               )}
             </div>
             {selectedPlace && selectedPlace.phone && (
-          <a
-            href={
-              selectedPlace?.phone
-                ? `https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Hola%2C%20vengo%20desde%20www.samsungecuador.com%20y%20quiero%20m%C3%A1s%20informaci%C3%B3n.`
-                : "#"
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-green-500/40 bg-white/90 text-green-600 font-semibold text-sm md:text-base hover:bg-green-600 hover:text-white hover:border-green-600 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap self-start md:self-center flex-shrink-0"
-          >
-            <WhatsAppContactIcon className="h-3 w-3" />
-            Contactar
-          </a>
+              <a
+                href={
+                  selectedPlace?.phone
+                    ? `https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Vengo%20desde%20www.samsungecuador.com%20-%20Cotizarme%20los%20siguientes%20productos%3A`
+                    : "#"
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-green-500/40 bg-white/90 text-green-600 font-semibold text-sm md:text-base hover:bg-green-600 hover:text-white hover:border-green-600 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap self-start md:self-center flex-shrink-0"
+              >
+                <WhatsAppContactIcon className="h-3 w-3" />
+                Contactar
+              </a>
             )}
           </div>
 
@@ -620,7 +620,11 @@ export default function HomePage() {
                 )}
                 {selectedPlace.phone && (
                   <a
-                    href={getWhatsAppUrl(selectedPlace.phone)}
+                    href={
+                      selectedPlace?.phone
+                        ? `https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Vengo%20desde%20www.samsungecuador.com%20-%20Cotizarme%20los%20siguientes%20productos%3A`
+                        : "#"
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-600 bg-white/10 text-white shadow-lg transition-all duration-200 hover:scale-110 hover:border-green-500 hover:bg-green-600 hover:shadow-green-400/40 animate-pulse-slow"
