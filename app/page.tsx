@@ -525,7 +525,7 @@ export default function HomePage() {
                       )}
                       {/* Badge de descuento */}
                       {discount && discount > 0 && (
-                        <div className="absolute top-3 right-3 bg-red-500 text-white font-bold py-1 px-2 rounded-lg text-sm shadow-lg">
+                        <div className="absolute top-3 right-3 bg-[#222488] text-white font-bold py-1 px-2 rounded-lg text-sm shadow-lg">
                           -{discount}%
                         </div>
                       )}
@@ -537,12 +537,12 @@ export default function HomePage() {
                       <div className="flex flex-col items-center justify-center gap-1 flex-grow text-center">
                         
                         {/* Cuotas */}
-                        <span className="text-xl font-semibold text-slate-500">
+                        <span className="text-lg font-semibold text-black">
                           12 cuotas sin intereses
                         </span>
 
                         {cuota && (
-                          <span className="text-xl md:text-4xl font-bold text-slate-700">
+                          <span className="text-3xl md:text-4xl font-bold text-black">
                             ${cuota}
                           </span>
                         )}
@@ -552,11 +552,11 @@ export default function HomePage() {
                         {typeof promo.price === "number" && (
                           <div className="flex items-center justify-center gap-2">
                             
-                            <span className="text-lg font-medium text-slate-500">
+                            <span className="text-sm font-medium text-slate-500">
                               Precio especial: 
                             </span>
 
-                            <span className="text-3xl font-bold text-samsungBlue leading-tight">
+                            <span className="text-2xl font-bold text-samsungBlue leading-tight">
                               {promo.price
                                 .toLocaleString("es-EC", {
                                   style: "currency",
@@ -571,9 +571,9 @@ export default function HomePage() {
 
                       {/* Precio anterior */}
                         {typeof promo.originalPrice === "number" && (
-                          <span className="text-lg text-slate-500">
+                          <span className="text-sm text-slate-500">
                             Precio anterior: {" "}
-                            <span className="line-through text-sm">
+                            <span className="line-through text-lg">
                               {promo.originalPrice
                                 .toLocaleString("es-EC", {
                                   style: "currency",
