@@ -11,9 +11,28 @@ initializeApp({
 
 const db = getFirestore();
 
-const SOURCE_PLACE_NAME = 'Kiosko Samsung - Village Plaza'; // Buscar por nombre
+const SOURCE_PLACE_NAME = 'Kiosko Samsung - Mall del Sol'; // Buscar por nombre
 const PROMOTIONS_COLLECTION = 'promotions';
 const PLACES_COLLECTION = 'places';
+
+function getCreatedAtMs(value) {
+  if (!value) return 0;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (typeof value.seconds === 'number') return value.seconds * 1000;
+  return 0;
+}
+
+function sortProducts(items) {
+  return [...items].sort((a, b) => {
+    const orderA = typeof a.order === 'number' ? a.order : Number.MAX_SAFE_INTEGER;
+    const orderB = typeof b.order === 'number' ? b.order : Number.MAX_SAFE_INTEGER;
+
+    if (orderA !== orderB) return orderA - orderB;
+
+    return getCreatedAtMs(a.createdAt) - getCreatedAtMs(b.createdAt);
+  });
+}
 
 async function replicateProducts() {
   try {
@@ -55,14 +74,19 @@ async function replicateProducts() {
       });
     });
 
-    if (sourceProducts.length === 0) {
+    const sortedSourceProducts = sortProducts(sourceProducts).map((product, index) => ({
+      ...product,
+      order: typeof product.order === 'number' ? product.order : index,
+    }));
+
+    if (sortedSourceProducts.length === 0) {
       console.error(`❌ No hay productos en "${SOURCE_PLACE_NAME}"`);
       return;
     }
 
-    console.log(`✅ Encontrados ${sourceProducts.length} productos:\n`);
-    sourceProducts.forEach((p, i) => {
-      console.log(`   ${i + 1}. ${p.title} - $${p.price}`);
+    console.log(`✅ Encontrados ${sortedSourceProducts.length} productos:\n`);
+    sortedSourceProducts.forEach((p, i) => {
+      console.log(`   ${i + 1}. [order ${p.order}] ${p.sku || 'sin-sku'} - ${p.title} - $${p.price}`);
     });
     console.log();
 
@@ -92,14 +116,17 @@ async function replicateProducts() {
 
       console.log(`   🗑️  Eliminados ${existingProducts.docs.length} productos anteriores`);
 
-      // Crear copias de los productos de Village Plaza
-      for (const sourceProduct of sourceProducts) {
+      // Crear copias de los productos de Mall del Sol manteniendo sku y order
+      for (const [index, sourceProduct] of sortedSourceProducts.entries()) {
         const newProduct = {
+          sku: sourceProduct.sku || '',
           title: sourceProduct.title || '',
           description: sourceProduct.description || '',
           price: sourceProduct.price ?? 0,
           originalPrice: sourceProduct.originalPrice ?? null,
           imageUrl: sourceProduct.imageUrl || '',
+          active: sourceProduct.active ?? true,
+          order: typeof sourceProduct.order === 'number' ? sourceProduct.order : index,
           placeId: targetPlace.id,
           placeName: targetPlace.name,
           cityId: targetPlace.cityId,
@@ -111,7 +138,7 @@ async function replicateProducts() {
         totalCreated++;
       }
 
-      console.log(`   ✅ ${sourceProducts.length} productos creados\n`);
+      console.log(`   ✅ ${sortedSourceProducts.length} productos creados\n`);
     }
 
     console.log(`\n🎉 ¡Replicación completada!`);

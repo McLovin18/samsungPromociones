@@ -4,7 +4,7 @@ import NewsletterSection from "./components/NewsletterSection";
 import GiftPopup from "./components/GiftPopup";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs, query, where, doc, getDoc, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import PromoCarousel from "./components/PromoCarousel";
 
@@ -54,11 +54,37 @@ interface Place {
 
 interface Promotion {
   id: string;
+  sku?: string;
   title: string;
   description: string;
   price: number; // precio promocional
   originalPrice?: number | null; // precio antes de la promo
   imageUrl: string;
+  order?: number;
+  createdAt?: { seconds?: number; toDate?: () => Date } | Date | null;
+}
+
+function getPromotionCreatedAtMs(value: Promotion["createdAt"]) {
+  if (!value) return 0;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "object" && typeof value.toDate === "function") {
+    return value.toDate().getTime();
+  }
+  if (typeof value === "object" && typeof value.seconds === "number") {
+    return value.seconds * 1000;
+  }
+  return 0;
+}
+
+function sortPromotions(items: Promotion[]) {
+  return [...items].sort((a, b) => {
+    const orderA = typeof a.order === "number" ? a.order : Number.MAX_SAFE_INTEGER;
+    const orderB = typeof b.order === "number" ? b.order : Number.MAX_SAFE_INTEGER;
+
+    if (orderA !== orderB) return orderA - orderB;
+
+    return getPromotionCreatedAtMs(b.createdAt) - getPromotionCreatedAtMs(a.createdAt);
+  });
 }
 
 export default function HomePage() {
@@ -253,7 +279,7 @@ export default function HomePage() {
         const q = query(ref, where("placeId", "==", selectedPlaceId));
         const snap = await getDocs(q);
         const items: Promotion[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-        setPromotions(items);
+        setPromotions(sortPromotions(items));
       } catch (error) {
         console.error("Error cargando promociones", error);
       } finally {
@@ -531,6 +557,11 @@ export default function HomePage() {
                       )}
                     </div>
                     <div className="flex flex-col flex-grow p-3 bg-slate-100 gap-2">
+                      {promo.sku && (
+                        <p className="text-left text-sm font-medium text-slate-500">
+                          SKU: {promo.sku}
+                        </p>
+                      )}
                       <h3 className="text-base font-semibold text-black text-center line-clamp-4 min-h-[6rem] flex items-center justify-center">
                         {promo.title}
                       </h3>
