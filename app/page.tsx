@@ -557,18 +557,14 @@ export default function HomePage() {
                       )}
                     </div>
                     <div className="flex flex-col flex-grow p-3 bg-slate-100 gap-2">
-                      {promo.sku && (
-                        <p className="text-left text-sm font-medium text-slate-500">
-                          SKU: {promo.sku}
-                        </p>
-                      )}
-                      <h3 className="text-base font-semibold text-black text-center line-clamp-4 min-h-[6rem] flex items-center justify-center">
+
+                      <h3 className="text-lg font-bold text-black text-center line-clamp-3 min-h-[6rem] flex items-center justify-center">
                         {promo.title}
                       </h3>
                       <div className="flex flex-col items-center justify-center gap-1 flex-grow text-center">
                         
                         {/* Cuotas */}
-                        <span className="text-lg font-semibold text-black">
+                        <span className="text-base font-semibold text-black">
                           12 cuotas sin intereses
                         </span>
 
@@ -587,7 +583,7 @@ export default function HomePage() {
                               Precio especial: 
                             </span>
 
-                            <span className="text-2xl font-bold text-samsungBlue leading-tight">
+                            <span className="text-lg font-bold text-samsungBlue leading-tight">
                               {promo.price
                                 .toLocaleString("es-EC", {
                                   style: "currency",
@@ -595,9 +591,10 @@ export default function HomePage() {
                                 })
                                 .replace("US$", "")}
                             </span>
-
                           </div>
+                          
                         )}
+
 
 
                       {/* Precio anterior */}
@@ -631,6 +628,11 @@ export default function HomePage() {
                       >
                         Cotizar ahora
                       </a>
+                        {promo.sku && (
+                          <p className="text-left text-sm font-medium text-slate-500">
+                            SKU: {promo.sku}
+                          </p>
+                        )}
                     </div>
                   </article>
                 );
