@@ -129,15 +129,6 @@ export default function RootLayout({
           />
         </noscript>
 
-        <Script id="ga-inline" strategy="afterInteractive">
-        {`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-LRWL95CHHS');
-        `}
-        </Script>
-
 
         <Script
           id="jsonld"
