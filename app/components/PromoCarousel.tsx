@@ -4,26 +4,23 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const slides = [
-  {
-    src: "/promo1.jpeg",
+    {
+    src: "/promo3.png",
     alt: "Promoción Samsung 1",
-    href: "https://shop.samsung.com/latin/ecu/ec/unpacked",
   },
   {
-    src: "/promo2.jpeg",
+    src: "/promo1.png",
     alt: "Promoción Samsung 2",
-    href: "https://shop.samsung.com/latin/ecu/ec/samsung-care-plus",
   },
   {
-    src: "/promo3.jpeg",
+    src: "/promo2.png",
     alt: "Promoción Samsung 3",
-    href: "https://shop.samsung.com/latin/ecu/ec/sorprendete",
   },
   {
-    src: "/promo4.png",
+    src: "/promo4.jpg",
     alt: "Promoción Samsung 4",
-    href: "https://shop.samsung.com/latin/ecu/ec/shop/tv-av.html",
   },
+
 ];
 
 export default function PromoCarousel() {
@@ -47,35 +44,27 @@ export default function PromoCarousel() {
     }
   };
 
-  // Mostrar dos imágenes consecutivas en desktop, una en móvil
+  // Mostrar una imagen a la vez
   return (
-    <section className="mt-10">
+    <section className="mt-2">
       <div className="mx-auto max-w-6xl px-4">
         <div className="relative">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {[0, 1].map((offset) => {
-              const idx = (current + offset) % total;
-              const slide = slides[idx];
-              return (
-                <div
-                  key={slide.src}
-                  className={`relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/80 shadow-2xl shadow-black/40 flex items-center justify-center ${offset === 1 ? "hidden lg:flex" : ""}`}
-                >
-                  <a href={slide.href} className="block">
-                    <Image
-                      src={slide.src}
-                      alt={slide.alt}
-                      width={700}
-                      height={700}
-                      className="object-contain max-w-full max-h-[700px]"
-                      priority={offset === 0}
-                    />
-                  </a>
-                </div>
-              );
-            })}
+          <div className="flex justify-center">
+            <div
+              className="relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/80 shadow-2xl shadow-black/40 flex items-center justify-center w-full max-w-2xl"
+            >
+              <a href={slides[current].href} className="block w-full">
+                <Image
+                  src={slides[current].src}
+                  alt={slides[current].alt}
+                  width={1000}
+                  height={500}
+                  className="object-contain w-full h-auto"
+                  priority
+                />
+              </a>
+            </div>
           </div>
-          {/* ...existing code... */}
           <button
             type="button"
             aria-label="Anterior"

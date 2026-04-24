@@ -107,28 +107,45 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-slate-50">
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-center px-4 py-3 sm:py-4">
-            <div className="flex flex-col items-center gap-1.5">
-              <div className="relative h-10 w-40 sm:h-12 sm:w-48">
-                <a href="/">
+          <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-3 sm:py-4">
+            {/* Grid de 5 columnas: 20% imagen, 60% contenido, 20% vacío */}
+            <div className="grid grid-cols-5 gap-4 w-full items-center">
+              {/* 20% - Imagen de Ecuador */}
+              <div className="flex items-center justify-center">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24">
                   <Image
-                    src="/logoSamsung.png"
-                    alt="Samsung"
+                    src="/logoS.png"
+                    alt="Ecuador"
                     fill
-                    sizes="192px"
+                    sizes="100px"
                     className="object-contain"
-                    priority
                   />
-                </a>
+                </div>
               </div>
-              
+
+              {/* 60% - Contenido Samsung (3 columnas) */}
+              <div className="col-span-3 flex flex-col items-center gap-1.5">
+                <div className="relative h-10 w-40 sm:h-12 sm:w-48">
+                  <a href="/">
+                    <Image
+                      src="/logoSamsung.png"
+                      alt="Samsung"
+                      fill
+                      sizes="192px"
+                      className="object-contain"
+                      priority
+                    />
+                  </a>
+                </div>
+                <div className="text-black text-center text-sm sm:text-xl">
+                  Vive la mejor experiencia en nuestras tiendas.
+                </div>
+              </div>
+
+              {/* 20% - Espacio vacío */}
+              <div></div>
             </div>
-                      <div className="relative items-center text-black text-center text-sm sm:text-xl"> Vive la mejor experiencia en nuestras tiendas: promociones especiales y atención personalizada.
-¡Te esperamos!
-                      </div>
-
           </div>
-
         </header>
         <main className="mx-auto max-w-6xl px-4 py-2 sm:py-8">{children}</main>
       </body>

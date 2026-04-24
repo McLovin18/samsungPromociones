@@ -4,7 +4,7 @@ import NewsletterSection from "./components/NewsletterSection";
 import GiftPopup from "./components/GiftPopup";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import PromoCarousel from "./components/PromoCarousel";
 
@@ -135,6 +135,13 @@ export default function HomePage() {
         const ref = collection(db, "places");
         const snap = await getDocs(ref);
         const items: Place[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+        // Ordenar: primero por order (si existe), luego por name
+        items.sort((a, b) => {
+          const orderA = typeof a.order === 'number' ? a.order : Infinity;
+          const orderB = typeof b.order === 'number' ? b.order : Infinity;
+          if (orderA !== orderB) return orderA - orderB;
+          return (a.name || '').localeCompare(b.name || '');
+        });
         setAllPlaces(items);
       } catch (error) {
         console.error("Error cargando todos los lugares", error);
@@ -210,6 +217,13 @@ export default function HomePage() {
         const q = query(ref, where("cityId", "==", selectedCityId));
         const snap = await getDocs(q);
         const items: Place[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+        // Ordenar: primero por order (si existe), luego por name
+        items.sort((a, b) => {
+          const orderA = typeof a.order === 'number' ? a.order : Infinity;
+          const orderB = typeof b.order === 'number' ? b.order : Infinity;
+          if (orderA !== orderB) return orderA - orderB;
+          return (a.name || '').localeCompare(b.name || '');
+        });
         setPlaces(items);
       } catch (error) {
         console.error("Error cargando lugares", error);
@@ -264,6 +278,10 @@ export default function HomePage() {
       {showGiftPopup && (
         <GiftPopup onClose={handleGiftPopupClose} onRegister={handleGiftPopupRegister} />
       )}
+
+      {/* Promociones al inicio */}
+      <PromoCarousel />
+
       <div className="mx-auto max-w-9xl px-4" id="newsletter">
         {/* Selección de ciudad */}
         <section className="mx-auto w-full rounded-2xl border border-slate-800/80 bg-slate-900/80 p-5 shadow-xl shadow-black/40">
@@ -367,8 +385,8 @@ export default function HomePage() {
             <div className="flex flex-col items-center justify-center mb-4">
             </div>
           )}
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <div className="flex flex-row items-center gap-6">
+            <div className="flex flex-col gap-1">
               <p className="text-base text-slate-200 flex flex-wrap items-center gap-2">
                 <span className="font-medium">
                   {selectedCity ? selectedCity.name : ""}
@@ -387,7 +405,6 @@ export default function HomePage() {
                         Ubicación
                       </a>
                     )}
-                    
                   </>
                 )}
               </p>
@@ -407,14 +424,25 @@ export default function HomePage() {
                 </p>
               )}
             </div>
+            {selectedPlace && selectedPlace.phone && (
+              <a
+                href={getWhatsAppUrl(selectedPlace.phone)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-green-500/40 bg-white/90 text-green-600 font-semibold text-base hover:bg-green-600 hover:text-white hover:border-green-600 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap flex-shrink-0"
+              >
+                <WhatsAppContactIcon className="h-3 w-3" />
+                Contactar
+              </a>
+            )}
           </div>
 
           {/* Layout de promociones + iconos */}
-          <div className="flex flex-col xl:flex-row w-full gap-12 xl:gap-16">
+          <div className="flex flex-col xl:flex-row w-full gap-12 xl:gap-16 ">
             {/* Imagen promocional del local: 20% en desktop, arriba en móvil */}
             {selectedPlace && selectedPlace.image && (
               <div className="flex flex-col items-center justify-start w-full mb-4 xl:mb-0 xl:w-[22%] max-w-[270px] sm:max-w-[400px] mx-auto">
-                <div className="w-full bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden mx-auto flex items-center justify-center">
+                <div className="w-full bg-slate-800 rounded-2xl border border- overflow-hidden mx-auto flex items-center justify-center">
                   <img
                     src={selectedPlace.image}
                     alt="Imagen promocional del local"
@@ -445,50 +473,93 @@ export default function HomePage() {
                 >
                   Descargar imagen
                 </button>
-                <p className="mt-8 text-xs text-slate-300 text-center leading-relaxed max-w-[180px]">
-                  Presenta el cupón que descargaste en el local que seleccionaste para obtener tu descuento.
+                <p className="mt-8 text-xs bg-white border-white rounded-lg text-black font-bold text-center leading-relaxed max-w-[180px]">
+                  Presenta el cupón o aviso que descargaste en el local que seleccionaste para obtener tu descuento.
                 </p>
               </div>
             )}
             {/* Productos promocionales: 60% en desktop */}
-            <div className="xl:w-3/5 w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            {selectedPlaceId && (
+            <div className="xl:w-3/5 w-full">
+              <h1 className="text-lg font-bold text-white mb-4 text-center">
+                Te presentamos las Ofertas Top de nuestros productos disponibles en tu tienda favorita. Cotiza con nosotros
+          
+              </h1>
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-white p-4 border-white rounded-lg font-bold">
               {loadingPromotions && <p className="text-sm text-slate-400">Cargando promociones…</p>}
               {!loadingPromotions && selectedPlaceId && promotions.length === 0 && (
                 <p className="text-sm text-slate-400">
                   Por ahora no hay promociones configuradas para este lugar.
                 </p>
               )}
-              {promotions.map((promo) => (
-                <article key={promo.id} className="card overflow-hidden w-full">
-                  <div className="aspect-[4/3] w-full bg-slate-800">
-                    {promo.imageUrl && (
-                      <img
-                        src={promo.imageUrl}
-                        alt={promo.title}
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="space-y-2 p-3">
-                    <h3 className="text-base font-semibold text-slate-50 text-center line-clamp-4 min-h-[4.5em]">
-                      {promo.title}
-                    </h3>
-                    <div className="flex flex-col items-center justify-end min-h-[2.5em] mt-2">
-                      {typeof promo.originalPrice === "number" && (
-                        <span className="text-2xl font-bold text-white">
-                          {promo.originalPrice
-                            .toLocaleString("es-EC", {
-                              style: "currency",
-                              currency: "USD",
-                            })
-                            .replace("US$", "")}
-                        </span>
+              {promotions.map((promo) => {
+                // Calcular porcentaje de descuento
+                const discount = 
+                  promo.price && promo.originalPrice && promo.originalPrice > promo.price
+                    ? Math.round(((promo.originalPrice - promo.price) / promo.originalPrice) * 100)
+                    : null;
+
+                return (
+
+
+                  <article key={promo.id} className="card overflow-hidden w-full h-full flex flex-col">
+
+                    <div className="aspect-[4/3] w-full bg-slate-100 relative flex-shrink-0">
+                      {promo.imageUrl && (
+                        <img
+                          src={promo.imageUrl}
+                          alt={promo.title}
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                      {/* Badge de descuento */}
+                      {discount && discount > 0 && (
+                        <div className="absolute top-3 right-3 bg-red-500 text-white font-bold py-1 px-2 rounded-lg text-sm shadow-lg">
+                          -{discount}%
+                        </div>
                       )}
                     </div>
-                  </div>
-                </article>
-              ))}
+                    <div className="flex flex-col flex-grow p-3 bg-slate-100 gap-2">
+                      <h3 className="text-base font-semibold text-black text-center line-clamp-4 min-h-[6rem] flex items-center justify-center">
+                        {promo.title}
+                      </h3>
+                      <div className="flex flex-col items-center justify-center gap-1 flex-grow">
+                        {typeof promo.originalPrice === "number" && (
+                          <span className="text-sm font-medium text-slate-600 line-through">
+                            {promo.originalPrice
+                              .toLocaleString("es-EC", {
+                                style: "currency",
+                                currency: "USD",
+                              })
+                              .replace("US$", "")}
+                          </span>
+                        )}
+                        {typeof promo.price === "number" && (
+                          <span className="text-2xl font-bold text-samsungBlue">
+                            {promo.price
+                              .toLocaleString("es-EC", {
+                                style: "currency",
+                                currency: "USD",
+                              })
+                              .replace("US$", "")}
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href={`https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Hola%2C%20estoy%20interesado%20en%20comprar%20el%20producto%3A%20${encodeURIComponent(promo.title)}${promo.price ? `%20-%20${encodeURIComponent(promo.price.toString())}` : ''}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-samsungBlue hover:bg-blue-700 text-white font-semibold text-sm py-1.5 px-3 rounded-lg transition-all duration-200 text-center block flex-shrink-0"
+                      >
+                        Comprar ahora
+                      </a>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
+            </div>
+            )}
 
             {/* Iconos de redes sociales: 20% en desktop, fila horizontal en móvil */}
             {selectedPlace && (
@@ -564,7 +635,6 @@ export default function HomePage() {
           )}
         </section>
 
-        <PromoCarousel />
         <NewsletterSection/>
         
         {/* Footer del desarrollador */}

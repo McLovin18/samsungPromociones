@@ -26,6 +26,7 @@ interface Place {
     hourFrom: string;
     hourTo: string;
   }> | null;
+  order?: number;
 }
 
 export default function AdminDashboardPage() {
@@ -35,6 +36,8 @@ export default function AdminDashboardPage() {
   const [cityModalOpen, setCityModalOpen] = useState(false);
   const [activeCityId, setActiveCityId] = useState<string | null>(null);
   const [placeModalOpen, setPlaceModalOpen] = useState(false);
+  const [draggedPlaceId, setDraggedPlaceId] = useState<string | null>(null);
+  const [dragOverPlaceId, setDragOverPlaceId] = useState<string | null>(null);
 
   const [newCityName, setNewCityName] = useState("");
   const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
@@ -56,8 +59,16 @@ export default function AdminDashboardPage() {
       setCities(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
     });
 
-    const unsubPlaces = onSnapshot(query(collection(db, "places"), orderBy("name")), (snap) => {
-      setPlaces(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })));
+    const unsubPlaces = onSnapshot(collection(db, "places"), (snap) => {
+      const placesData = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+      // Ordenar: primero por order (si existe), luego por name
+      placesData.sort((a, b) => {
+        const orderA = typeof a.order === 'number' ? a.order : Infinity;
+        const orderB = typeof b.order === 'number' ? b.order : Infinity;
+        if (orderA !== orderB) return orderA - orderB;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+      setPlaces(placesData);
     });
 
     return () => {
@@ -120,12 +131,40 @@ export default function AdminDashboardPage() {
       if (editingPlaceId) {
         await updateDoc(doc(db, "places", editingPlaceId), payload);
       } else {
-        await addDoc(collection(db, "places"), { ...payload, createdAt: new Date() });
+        // Calcular el siguiente número de orden para esta ciudad
+        const cityPlaces = placesByCity[selectedCity.id] || [];
+        const nextOrder = cityPlaces.length;
+        await addDoc(collection(db, "places"), { ...payload, createdAt: new Date(), order: nextOrder });
       }
       resetPlaceForm();
       setPlaceModalOpen(false);
     } catch (error) {
       console.error("Error al guardar lugar:", error);
+    }
+  };
+
+  // --- Manejar reordenamiento de lugares ---
+  const handleReorderPlaces = async (draggedId: string, targetId: string) => {
+    if (draggedId === targetId || !selectedCity) return;
+
+    const cityPlaces = placesByCity[selectedCity.id] || [];
+    const draggedIndex = cityPlaces.findIndex((p) => p.id === draggedId);
+    const targetIndex = cityPlaces.findIndex((p) => p.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Crear array reordenado
+    const reordered = [...cityPlaces];
+    const [draggedPlace] = reordered.splice(draggedIndex, 1);
+    reordered.splice(targetIndex, 0, draggedPlace);
+
+    // Actualizar órdenes en Firestore
+    try {
+      for (let i = 0; i < reordered.length; i++) {
+        await updateDoc(doc(db, "places", reordered[i].id), { order: i });
+      }
+    } catch (error) {
+      console.error("Error al reordenar lugares:", error);
     }
   };
 
@@ -406,6 +445,20 @@ export default function AdminDashboardPage() {
                 <button
                   key={place.id}
                   type="button"
+                  draggable
+                  onDragStart={() => setDraggedPlaceId(place.id)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverPlaceId(place.id);
+                  }}
+                  onDragLeave={() => setDragOverPlaceId(null)}
+                  onDrop={() => {
+                    if (draggedPlaceId) {
+                      handleReorderPlaces(draggedPlaceId, place.id);
+                      setDraggedPlaceId(null);
+                      setDragOverPlaceId(null);
+                    }
+                  }}
                   onClick={() => {
                     setEditingPlaceId(place.id);
                     setNewPlaceName(place.name || "");
@@ -421,7 +474,13 @@ export default function AdminDashboardPage() {
                         : [{ dayFrom: "", dayTo: "", hourFrom: "", hourTo: "" }]
                     );
                   }}
-                  className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs hover:border-samsungBlue/60"
+                  className={`flex w-full items-center justify-between rounded-md border px-3 py-1.5 text-xs transition-all ${
+                    draggedPlaceId === place.id
+                      ? "opacity-50 border-samsungBlue bg-samsungBlue/10"
+                      : dragOverPlaceId === place.id
+                      ? "border-samsungBlue bg-samsungBlue/5"
+                      : "border-slate-200 bg-white hover:border-samsungBlue/60"
+                  }`}
                 >
                   <span className="font-medium text-slate-900">{place.name}</span>
                   <span className="text-[11px] text-slate-600">{selectedCity.name}</span>

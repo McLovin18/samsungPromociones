@@ -18,6 +18,7 @@ interface Promotion {
   id: string;
   title: string;
   originalPrice?: number | null; // precio del producto
+  price?: number | null; // precio promocional
   imageUrl: string;
 }
 
@@ -54,6 +55,7 @@ export default function AdminPromotionsPage() {
 
   const [title, setTitle] = useState("");
   const [previousPrice, setPreviousPrice] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
   const [imageUrl, setImageUrl] = useState("");
   const [editingPromotionId, setEditingPromotionId] = useState<string | null>(null);
 
@@ -102,10 +104,12 @@ export default function AdminPromotionsPage() {
     e.preventDefault();
     if (!selectedPlace) return;
     const numericPreviousPrice = Number(previousPrice.replace(",", "."));
+    const numericPrice = Number(price.replace(",", "."));
 
     const payload = {
       title: title.trim(),
       originalPrice: Number.isNaN(numericPreviousPrice) ? null : numericPreviousPrice,
+      price: Number.isNaN(numericPrice) ? null : numericPrice,
       imageUrl: imageUrl.trim(),
       placeId: selectedPlace.id,
       placeName: selectedPlace.name,
@@ -123,7 +127,6 @@ export default function AdminPromotionsPage() {
       });
     }
     setTitle("");
-    setDescription("");
     setPreviousPrice("");
     setPrice("");
     setImageUrl("");
@@ -136,6 +139,11 @@ export default function AdminPromotionsPage() {
     setPreviousPrice(
       typeof promo.originalPrice === "number"
         ? promo.originalPrice.toString()
+        : ""
+    );
+    setPrice(
+      typeof promo.price === "number"
+        ? promo.price.toString()
         : ""
     );
     setImageUrl(promo.imageUrl || "");
@@ -151,6 +159,7 @@ export default function AdminPromotionsPage() {
       setEditingPromotionId(null);
       setTitle("");
       setPreviousPrice("");
+      setPrice("");
       setImageUrl("");
     }
   };
@@ -158,20 +167,7 @@ export default function AdminPromotionsPage() {
   return (
     <div className="space-y-6">
       {/* Configuración del contador */}
-      <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">Configuración del contador regresivo</h2>
-        <label className="block text-xs font-medium text-slate-700 mb-1">Duración del contador (horas):</label>
-        <input
-          type="number"
-          min={1}
-          max={168}
-          value={countdownHours}
-          onChange={handleCountdownChange}
-          disabled={loadingCountdown}
-          className="w-24 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-        />
-        <p className="text-[11px] text-slate-500 mt-1">El landing mostrará siempre un conteo regresivo desde este valor cada vez que un usuario entra.</p>
-      </section>
+
       <section className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           Gestión de promociones
@@ -239,7 +235,8 @@ export default function AdminPromotionsPage() {
           setTitle={setTitle}
           previousPrice={previousPrice}
           setPreviousPrice={setPreviousPrice}
-          // price eliminado
+          price={price}
+          setPrice={setPrice}
           imageUrl={imageUrl}
           setImageUrl={setImageUrl}
           editingPromotionId={editingPromotionId}
@@ -256,11 +253,10 @@ function PromoModal({
   onSubmit,
   title,
   setTitle,
-  // description,
-  // setDescription,
   previousPrice,
   setPreviousPrice,
-  // price eliminado
+  price,
+  setPrice,
   imageUrl,
   setImageUrl,
   editingPromotionId,
@@ -273,8 +269,6 @@ function PromoModal({
   onSubmit: (e: FormEvent) => void;
   title: string;
   setTitle: (v: string) => void;
-  description: string;
-  setDescription: (v: string) => void;
   previousPrice: string;
   setPreviousPrice: (v: string) => void;
   price: string;
@@ -321,7 +315,7 @@ function PromoModal({
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-slate-700">Precio del producto</label>
+                <label className="text-[11px] font-medium text-slate-700">Precio del producto (original)</label>
                 <input
                   type="text"
                   value={previousPrice}
@@ -332,15 +326,26 @@ function PromoModal({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-medium text-slate-700">URL de imagen (opcional)</label>
+                <label className="text-[11px] font-medium text-slate-700">Precio promocional</label>
                 <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
+                  type="text"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
-                  placeholder="https://…/promo.jpg"
+                  placeholder="699.99"
                 />
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-slate-700">URL de imagen (opcional)</label>
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                placeholder="https://…/promo.jpg"
+              />
             </div>
             <button type="submit" className="btn-primary mt-1 w-full justify-center text-xs">
               {editingPromotionId ? "Actualizar promoción" : "Guardar promoción"}
@@ -380,9 +385,17 @@ function PromoModal({
                   <p className="truncate text-xs font-semibold text-slate-50">{promo.title}</p>
                   <div className="mt-1 flex flex-col items-start gap-1 text-xs">
                     {typeof promo.originalPrice === "number" && (
-                      <span className="text-xs font-semibold text-samsungBlue">
+                      <span className="line-through text-slate-400 text-[10px]">
                         $
                         {promo.originalPrice.toLocaleString("es-EC", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    )}
+                    {typeof promo.price === "number" && (
+                      <span className="font-bold text-samsungBlue">
+                        $
+                        {promo.price.toLocaleString("es-EC", {
                           minimumFractionDigits: 2,
                         })}
                       </span>
