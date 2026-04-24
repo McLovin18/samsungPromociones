@@ -471,7 +471,7 @@ export default function HomePage() {
                     }
                   }}
                 >
-                  Descargar imagen
+                  Descargar cupón
                 </button>
                 <p className="mt-8 text-xs bg-white border-white rounded-lg text-black font-bold text-center leading-relaxed max-w-[180px]">
                   Presenta el cupón o aviso que descargaste en el local que seleccionaste para obtener tu descuento.
@@ -482,7 +482,7 @@ export default function HomePage() {
             {selectedPlaceId && (
             <div className="xl:w-3/5 w-full">
               <h1 className="text-lg font-bold text-white mb-4 text-center">
-                Te presentamos las Ofertas Top de nuestros productos disponibles en tu tienda favorita. Cotiza con nosotros
+                Te presentamos las Ofertas Top de nuestros productos disponibles en tu tienda favorita.
           
               </h1>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-white p-4 border-white rounded-lg font-bold">
@@ -548,7 +548,8 @@ export default function HomePage() {
                       <a
                         href={
                           selectedPlace?.phone
-                            ? `https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Hola%2C%20estoy%20interesado%20en%20comprar%20el%20producto%3A%20${encodeURIComponent(promo.title)}${promo.price ? `%20-%20${encodeURIComponent(promo.price.toString())}` : ''}`
+                                  ? `https://wa.me/${selectedPlace.phone.replace(/\D/g, '')}?text=Hola%2C%20estoy%20interesado%20en%20comprar%20el%20producto%3A%20${encodeURIComponent(promo.title)}${promo.price ? `%20-%20${encodeURIComponent(promo.price.toString())}` : ''}%0A%0AVengo%20desde%3A%20www.samsungecuador.com`
+
                             : "#"
                         }
                         target="_blank"
