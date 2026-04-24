@@ -474,7 +474,7 @@ export default function HomePage() {
                   Descargar cupón
                 </button>
                 <p className="mt-8 text-xs bg-white border-white rounded-lg text-black font-bold text-center p-2 leading-relaxed max-w-[180px]">
-                  Presenta el cupón o aviso que descargaste en el local que seleccionaste para obtener tu descuento.
+                  Presenta este aviso (cupón) y accede a un beneficio especial en tu tienda seleccionada.
                 </p>
               </div>
             )}

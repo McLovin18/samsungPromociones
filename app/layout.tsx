@@ -180,7 +180,7 @@ export default function RootLayout({
                   </a>
                 </div>
                 <div className="text-black text-center text-sm sm:text-xl">
-                  Vive la mejor experiencia en nuestras tiendas.
+                  Vive la mejor experiencia en nuestras tiendas físicas.
                 </div>
               </div>
 
