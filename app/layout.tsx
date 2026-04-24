@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import "./globals.css";
 import Image from "next/image";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Promociones Samsung Ecuador | Ofertas Exclusivas",
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
   keywords: ["Samsung", "Ecuador", "promociones", "ofertas", "smartphones", "Galaxy", "descuentos", "electrónica"],
   authors: [{ name: "Samsung Ecuador" }],
   creator: "Samsung Ecuador",
+  category: "technology",
+  applicationName: "Samsung Ecuador Promociones",
   publisher: "Samsung Ecuador",
   metadataBase: new URL("https://www.samsungecuador.com"),
   alternates: {
@@ -65,6 +68,17 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        <Script id="gtm" strategy="beforeInteractive">
+          {`
+          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+          new Date().getTime(),event:'gtm.js'});
+          var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+          j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+          f.parentNode.insertBefore(j,f);
+          })(window,document,'script','dataLayer','GTM-K8NT2C8K');
+          `}
+        </Script>
         <link
           rel="preload"
           href="https://static.samsung.com/images/ic/site/fonts/samsungone-400.woff2"
@@ -106,6 +120,43 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-slate-50">
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-K8NT2C8K"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+
+        <Script id="ga-inline" strategy="afterInteractive">
+        {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-LRWL95CHHS');
+        `}
+        </Script>
+
+
+        <Script
+          id="jsonld"
+          type="application/ld+json"
+          strategy="afterInteractive"
+        >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Samsung Ecuador",
+          url: "https://www.samsungecuador.com",
+          logo: "https://www.samsungecuador.com/og-image.png",
+          sameAs: [
+            "https://www.facebook.com/",
+            "https://www.instagram.com/"
+          ]
+        })}
+        </Script>
+
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
           <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-3 sm:py-4">
             {/* Grid de 5 columnas: 20% imagen, 60% contenido, 20% vacío */}
