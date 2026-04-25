@@ -549,6 +549,7 @@ export default function HomePage() {
                           className="h-full w-full object-cover"
                         />
                       )}
+
                       {/* Badge de descuento */}
                       {discount && discount > 0 && (
                         <div className="absolute top-3 right-3 bg-[#222488] text-white font-bold py-1 px-2 rounded-lg text-sm shadow-lg">
@@ -556,7 +557,13 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
+
                     <div className="flex flex-col flex-grow p-3 bg-slate-100 gap-2">
+                        {promo.sku && (
+                          <p className=" text-sm font-medium text-center text-slate-500">
+                            SKU: {promo.sku}
+                          </p>
+                        )}
 
                       <h3 className="text-lg font-bold text-black text-center line-clamp-3 min-h-[6rem] flex items-center justify-center">
                         {promo.title}
@@ -569,7 +576,7 @@ export default function HomePage() {
                         </span>
 
                         {cuota && (
-                          <span className="text-3xl md:text-4xl font-bold text-black">
+                          <span className="text-3xl md:text-4xl font-bold text-samsungBlue">
                             ${cuota}
                           </span>
                         )}
@@ -579,11 +586,11 @@ export default function HomePage() {
                         {typeof promo.price === "number" && (
                           <div className="flex items-center justify-center gap-2">
                             
-                            <span className="text-sm font-medium text-slate-500">
+                            <span className="text-sm font-medium text-black">
                               Precio especial: 
                             </span>
 
-                            <span className="text-lg font-bold text-samsungBlue leading-tight">
+                            <span className="text-lg font-bold leading-tight text-slate-500">
                               {promo.price
                                 .toLocaleString("es-EC", {
                                   style: "currency",
@@ -599,9 +606,9 @@ export default function HomePage() {
 
                       {/* Precio anterior */}
                         {typeof promo.originalPrice === "number" && (
-                          <span className="text-sm text-slate-500">
+                          <span className="text-sm font-medium text-black">
                             Precio anterior: {" "}
-                            <span className="line-through text-lg">
+                            <span className="line-through text-lg text-slate-500">
                               {promo.originalPrice
                                 .toLocaleString("es-EC", {
                                   style: "currency",
@@ -628,11 +635,7 @@ export default function HomePage() {
                       >
                         Cotizar ahora
                       </a>
-                        {promo.sku && (
-                          <p className="text-left text-sm font-medium text-slate-500">
-                            SKU: {promo.sku}
-                          </p>
-                        )}
+
                     </div>
                   </article>
                 );
