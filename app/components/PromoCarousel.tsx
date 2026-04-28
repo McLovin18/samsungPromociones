@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 const slides = [
     {
-    src: "/promo3.png",
+    src: "/promo3.jpeg",
     alt: "Promoción Samsung 1",
   },
   {
