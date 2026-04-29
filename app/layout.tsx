@@ -1,45 +1,16 @@
-import dynamic from "next/dynamic";
 import type { Metadata } from "next";
 import "./globals.css";
 import Image from "next/image";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Promociones Samsung Ecuador | Ofertas Exclusivas",
-  description: "Descubre las mejores promociones y ofertas exclusivas de Samsung en Ecuador. Encuentra smartphones, tablets, televisores y más con descuentos increíbles en tu ciudad.",
-  keywords: ["Samsung", "Ecuador", "promociones", "ofertas", "smartphones", "Galaxy", "descuentos", "electrónica"],
-  authors: [{ name: "Samsung Ecuador" }],
-  creator: "Samsung Ecuador",
-  category: "technology",
-  applicationName: "Samsung Ecuador Promociones",
-  publisher: "Samsung Ecuador",
-  metadataBase: new URL("https://www.samsungecuador.com"),
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    type: "website",
-    locale: "es_EC",
-    url: "https://www.samsungecuador.com",
-    siteName: "Samsung Ecuador Promociones",
-    title: "Promociones Samsung Ecuador | Ofertas Exclusivas",
-    description: "Descubre las mejores promociones y ofertas exclusivas de Samsung en Ecuador. Smartphones, tablets, televisores y más con descuentos increíbles.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Samsung Ecuador - Promociones y Ofertas Exclusivas",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Promociones Samsung Ecuador | Ofertas Exclusivas",
-    description: "Descubre las mejores promociones y ofertas exclusivas de Samsung en Ecuador. Smartphones, tablets, televisores y más.",
-    images: ["/og-image.jpeg"],
-    creator: "@SamsungEcuador",
-  },
+  title: "Tiendas físicas Samsung Ecuador / Ofertas Exclusivas",
+  description:
+    "La mejor manera de comprar los últimos Galaxy S26 Series, Galaxy Z Fold7, Galaxy Z Flip7, Galaxy Watch8 Series, televisores, electrodomésticos y más.",
+  keywords: "samsung, ofertas samsung, cupones samsung, descuentos samsung",
+  authors: [{ name: "Grupo EcuaLink" }],
+  creator: "Grupo EcuaLink",
+  applicationName: "Samsung Ecuador",
   robots: {
     index: true,
     follow: true,
@@ -51,10 +22,34 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  icons: {
-    icon: [
-      { url: "/og-image.jpeg", type: "image/jpeg" },
+  alternates: {
+    canonical: "https://www.samsungecuador.com/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    url: "https://www.samsungecuador.com/",
+    title: "Tiendas físicas Samsung Ecuador / Ofertas Exclusivas",
+    description:
+      "La mejor manera de comprar los últimos Galaxy S26 Series, Galaxy Z Fold7, Galaxy Z Flip7, Galaxy Watch8 Series, televisores, electrodomésticos y más.",
+    images: [
+      {
+        url: "https://promobig.ec/wp-content/uploads/2026/04/KV-4.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Samsung Ecuador",
+      },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tiendas físicas Samsung Ecuador / Ofertas Exclusivas",
+    description:
+      "La mejor manera de comprar los últimos Galaxy S26 Series, Galaxy Z Fold7, Galaxy Z Flip7, Galaxy Watch8 Series, televisores, electrodomésticos y más.",
+    images: ["https://promobig.ec/wp-content/uploads/2026/04/KV-4.jpg"],
+  },
+  icons: {
+    icon: [{ url: "/og-image.jpeg", type: "image/jpeg" }],
     apple: "/og-image.jpeg",
     shortcut: "/og-image.jpeg",
   },
@@ -135,17 +130,17 @@ export default function RootLayout({
           type="application/ld+json"
           strategy="afterInteractive"
         >
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Samsung Ecuador",
-          url: "https://www.samsungecuador.com",
-          logo: "https://www.samsungecuador.com/og-image.png",
-          sameAs: [
-            "https://www.facebook.com/",
-            "https://www.instagram.com/"
-          ]
-        })}
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Samsung Ecuador - Mirgor",
+            url: "https://www.samsungecuador.com/",
+            logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsoG3jGfA4hp7bx7W8b44D2ysZztzKSsySew&s",
+            sameAs: [
+              "https://www.facebook.com/profile.php?id=100060542467318#",
+              "https://www.instagram.com/samsungecuador/",
+            ],
+          })}
         </Script>
 
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white">
