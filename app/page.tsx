@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import PromoCarousel from "./components/PromoCarousel";
+import { useGlobalPromoImage } from "./components/GlobalPromoImage";
 
 // Hook para countdown
 function useCountdown(targetDate: Date) {
@@ -89,6 +90,7 @@ function sortPromotions(items: Promotion[]) {
 
 export default function HomePage() {
   const [showGiftPopup, setShowGiftPopup] = useState(false);
+  const { globalImage } = useGlobalPromoImage();
   useEffect(() => {
     const loadCities = async () => {
       setLoadingCities(true);
@@ -322,7 +324,10 @@ export default function HomePage() {
               <select
                 className="w-full xl:w-1/2 rounded-lg border border-slate-700 bg-white px-3 py-2.5 text-base text-slate-900 outline-none ring-samsungBlue/30 focus:border-samsungBlue focus:ring-2"
                 value={selectedCityId}
-                onChange={(e) => setSelectedCityId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCityId(e.target.value);
+                  setSelectedPlaceId("");
+                }}
               >
                 <option value="">Selecciona tu ciudad</option>
                 {sortedCities.map((city) => (
@@ -387,10 +392,12 @@ export default function HomePage() {
                       type="button"
                       onClick={() => {
                         setSelectedPlaceId(place.id);
-                        if (typeof document !== "undefined") {
-                          const el = document.getElementById("promociones");
-                          el?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }
+                        setTimeout(() => {
+                          if (typeof document !== "undefined") {
+                            const el = document.getElementById("promociones");
+                            el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }
+                        }, 0);
                       }}
                       className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-sm font-semibold shadow-md transition ${
                         selectedPlaceId === place.id
@@ -408,14 +415,13 @@ export default function HomePage() {
         </section>
 
         {/* Promociones */}
+        {selectedPlaceId && (
         <section
           id="promociones"
           className="space-y-6 w-full rounded-3xl border border-slate-800/80 bg-slate-900/80 p-4 shadow-2xl shadow-black/40 sm:p-6"
         >
-          {selectedPlace && (
           <div className="flex flex-col items-center justify-center mb-4">
-            </div>
-          )}
+          </div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-start gap-4 md:gap-4">              
               <div className="flex flex-col gap-1">
               <p className="text-base text-slate-200 flex flex-wrap items-center gap-2">
@@ -474,13 +480,13 @@ export default function HomePage() {
 
           {/* Layout de promociones + iconos */}
           <div className="flex flex-col xl:flex-row w-full gap-6 xl:gap-8 ">
-            {/* Imagen promocional del local: 20% en desktop, arriba en móvil */}
-            {selectedPlace && selectedPlace.image && (
+            {/* Imagen promocional: global o del local (solo si se seleccionó un lugar) */}
+            {selectedPlaceId && (globalImage || (selectedPlace && selectedPlace.image)) && (
               <div className="flex flex-col items-center justify-start mb-4 xl:mb-0 xl:w-[22%] mx-auto">                
                 <div className="inline-flex bg-slate-800 rounded-2xl overflow-hidden mx-auto">                  
                   <img
-                    src={selectedPlace.image}
-                    alt="Imagen promocional del local"
+                    src={(globalImage || selectedPlace?.image) as string}
+                    alt="Imagen promocional"
                     className="h-auto max-h-[70vh] w-auto object-contain rounded-2xl"
                     style={{ display: 'block' }}
                   />
@@ -489,20 +495,22 @@ export default function HomePage() {
                   type="button"
                   className="mt-2 px-4 py-2 rounded-lg bg-samsungBlue text-white font-semibold text-xs shadow-md hover:bg-samsungBlue/80 transition"
                   onClick={async () => {
+                    const imageUrl = globalImage || selectedPlace?.image;
+                    if (!imageUrl) return;
                     try {
-                      const response = await fetch(selectedPlace.image!);
+                      const response = await fetch(imageUrl);
                       const blob = await response.blob();
                       const url = window.URL.createObjectURL(blob);
                       const link = document.createElement('a');
                       link.href = url;
-                      link.download = 'promocion-local.png';
+                      link.download = 'promocion.png';
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
                       window.URL.revokeObjectURL(url);
                     } catch (error) {
                       console.error('Error descargando imagen:', error);
-                      window.open(selectedPlace.image!, '_blank');
+                      window.open(imageUrl, '_blank');
                     }
                   }}
                 >
@@ -751,6 +759,7 @@ export default function HomePage() {
             </div>
           )}
         </section>
+        )}
 
         <NewsletterSection/>
         

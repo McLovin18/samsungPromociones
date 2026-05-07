@@ -2,9 +2,17 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-const slides = [
-    {
+interface SlideImage {
+  src: string;
+  alt: string;
+  href?: string;
+}
+
+const defaultSlides: SlideImage[] = [
+  {
     src: "/promo3.jpeg",
     alt: "Promoción Samsung 1",
   },
@@ -20,12 +28,39 @@ const slides = [
     src: "/promo4.jpg",
     alt: "Promoción Samsung 4",
   },
-
 ];
 
 export default function PromoCarousel() {
+  const [slides, setSlides] = useState<SlideImage[]>(defaultSlides);
   const [current, setCurrent] = useState(0);
   const total = slides.length;
+
+  // Cargar imágenes del slider desde Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "settings"), (snap) => {
+      const sliderDoc = snap.docs.find((d) => d.id === "sliderImages");
+      if (sliderDoc) {
+        const data = sliderDoc.data();
+        const dynamicImages = (data.images || []).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+        
+        // Combinar: imágenes dinámicas reemplazan las hardcodeadas en orden
+        const combinedSlides = [...defaultSlides];
+        dynamicImages.forEach((img: any, idx: number) => {
+          if (idx < combinedSlides.length) {
+            combinedSlides[idx] = { src: img.src, alt: img.alt };
+          } else {
+            combinedSlides.push({ src: img.src, alt: img.alt });
+          }
+        });
+        setSlides(combinedSlides);
+      } else {
+        // Si no hay imágenes dinámicas, usar las por defecto
+        setSlides(defaultSlides);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -53,7 +88,18 @@ export default function PromoCarousel() {
             <div
               className="relative overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-900/80 shadow-2xl shadow-black/40 flex items-center justify-center w-full max-w-2xl"
             >
-              <a href={slides[current].href} className="block w-full">
+              {slides[current]?.href ? (
+                <a href={slides[current].href} className="block w-full">
+                  <Image
+                    src={slides[current].src}
+                    alt={slides[current].alt}
+                    width={1000}
+                    height={500}
+                    className="object-contain w-full h-auto"
+                    priority
+                  />
+                </a>
+              ) : (
                 <Image
                   src={slides[current].src}
                   alt={slides[current].alt}
@@ -62,7 +108,7 @@ export default function PromoCarousel() {
                   className="object-contain w-full h-auto"
                   priority
                 />
-              </a>
+              )}
             </div>
           </div>
           <button

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addDoc, collection, doc, onSnapshot, orderBy, query, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { addDoc, collection, doc, onSnapshot, orderBy, query, updateDoc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 
 interface City {
   id: string;
@@ -53,6 +54,20 @@ export default function AdminDashboardPage() {
     { dayFrom: "", dayTo: "", hourFrom: "", hourTo: "" },
   ]);
 
+  // --- Imagen promocional global ---
+  const [globalPromoImage, setGlobalPromoImage] = useState("");
+  const [globalPromoImageId, setGlobalPromoImageId] = useState<string | null>(null);
+  const [globalPromoImageFile, setGlobalPromoImageFile] = useState<File | null>(null);
+  const [globalPromoImageLoading, setGlobalPromoImageLoading] = useState(false);
+
+  // --- Imágenes del slider ---
+  const [sliderImages, setSliderImages] = useState<Array<{ id: string; src: string; alt: string; order: number }>>([]);
+  const [newSliderImageSrc, setNewSliderImageSrc] = useState("");
+  const [newSliderImageAlt, setNewSliderImageAlt] = useState("");
+  const [newSliderImageFile, setNewSliderImageFile] = useState<File | null>(null);
+  const [editingSliderImageId, setEditingSliderImageId] = useState<string | null>(null);
+  const [sliderImageLoading, setSliderImageLoading] = useState(false);
+
   // --- Snapshot de ciudades y lugares ---
   useEffect(() => {
     const unsubCities = onSnapshot(query(collection(db, "cities"), orderBy("name")), (snap) => {
@@ -71,9 +86,28 @@ export default function AdminDashboardPage() {
       setPlaces(placesData);
     });
 
+    // Cargar imagen promocional global
+    const unsubSettings = onSnapshot(collection(db, "settings"), (snap) => {
+      const settingsDoc = snap.docs.find((d) => d.id === "globalPromo");
+      if (settingsDoc) {
+        const data = settingsDoc.data();
+        setGlobalPromoImage(data.image || "");
+        setGlobalPromoImageId(settingsDoc.id);
+      }
+
+      // Cargar imágenes del slider
+      const sliderDoc = snap.docs.find((d) => d.id === "sliderImages");
+      if (sliderDoc) {
+        const data = sliderDoc.data();
+        const images = (data.images || []).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+        setSliderImages(images);
+      }
+    });
+
     return () => {
       unsubCities();
       unsubPlaces();
+      unsubSettings();
     };
   }, []);
 
@@ -90,6 +124,134 @@ export default function AdminDashboardPage() {
     setNewPlaceAddress("");
     setNewPlaceImage("");
     setNewPlaceHours([{ dayFrom: "", dayTo: "", hourFrom: "", hourTo: "" }]);
+  };
+
+  // --- Guardar imagen promocional global ---
+  const handleSaveGlobalPromoImage = async () => {
+    if ((!globalPromoImage.trim() && !globalPromoImageFile)) return;
+    try {
+      setGlobalPromoImageLoading(true);
+      let imageUrl = globalPromoImage;
+
+      // Si hay archivo, subirlo a Firebase Storage
+      if (globalPromoImageFile) {
+        const fileName = `global_promo_${Date.now()}_${globalPromoImageFile.name}`;
+        const storageRef = ref(storage, `promo-images/${fileName}`);
+        await uploadBytes(storageRef, globalPromoImageFile);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
+      if (globalPromoImageId) {
+        // Actualizar documento existente
+        await updateDoc(doc(db, "settings", globalPromoImageId), {
+          image: imageUrl.trim(),
+        });
+      } else {
+        // Crear nuevo documento
+        await setDoc(doc(db, "settings", "globalPromo"), {
+          id: "globalPromo",
+          image: imageUrl.trim(),
+        }, { merge: true });
+        setGlobalPromoImageId("globalPromo");
+      }
+
+      // Reset del archivo pero mantener la URL
+      setGlobalPromoImageFile(null);
+    } catch (error) {
+      console.error("Error al guardar imagen global:", error);
+    } finally {
+      setGlobalPromoImageLoading(false);
+    }
+  };
+
+  // --- Guardar/Actualizar imagen del slider ---
+  const handleSaveSliderImage = async () => {
+    if ((!newSliderImageSrc.trim() && !newSliderImageFile) || !newSliderImageAlt.trim()) return;
+
+    try {
+      setSliderImageLoading(true);
+      let imageSrc = newSliderImageSrc;
+
+      // Si hay archivo, subirlo a Firebase Storage
+      if (newSliderImageFile) {
+        const fileName = `slider_${Date.now()}_${newSliderImageFile.name}`;
+        const storageRef = ref(storage, `slider-images/${fileName}`);
+        await uploadBytes(storageRef, newSliderImageFile);
+        imageSrc = await getDownloadURL(storageRef);
+      }
+
+      const newOrder = editingSliderImageId 
+        ? sliderImages.find(img => img.id === editingSliderImageId)?.order ?? sliderImages.length
+        : sliderImages.length;
+
+      let updatedImages: Array<{ id: string; src: string; alt: string; order: number }>;
+
+      if (editingSliderImageId) {
+        // Actualizar imagen existente
+        updatedImages = sliderImages.map(img =>
+          img.id === editingSliderImageId
+            ? { ...img, src: imageSrc.trim(), alt: newSliderImageAlt.trim() }
+            : img
+        );
+      } else {
+        // Agregar nueva imagen
+        const newId = `slide_${Date.now()}`;
+        updatedImages = [...sliderImages, { id: newId, src: imageSrc.trim(), alt: newSliderImageAlt.trim(), order: newOrder }];
+      }
+
+      // Guardar en Firestore - usar setDoc para asegurar que el ID sea "sliderImages"
+      await setDoc(doc(db, "settings", "sliderImages"), {
+        id: "sliderImages",
+        images: updatedImages,
+      }, { merge: true });
+
+      // Reset del formulario
+      setNewSliderImageSrc("");
+      setNewSliderImageAlt("");
+      setNewSliderImageFile(null);
+      setEditingSliderImageId(null);
+    } catch (error) {
+      console.error("Error al guardar imagen del slider:", error);
+    } finally {
+      setSliderImageLoading(false);
+    }
+  };
+
+  // --- Eliminar imagen del slider ---
+  const handleDeleteSliderImage = async (imageId: string) => {
+    try {
+      const updatedImages = sliderImages.filter(img => img.id !== imageId);
+      await setDoc(doc(db, "settings", "sliderImages"), {
+        id: "sliderImages",
+        images: updatedImages,
+      }, { merge: true });
+    } catch (error) {
+      console.error("Error al eliminar imagen del slider:", error);
+    }
+  };
+
+  // --- Reordenar imágenes del slider ---
+  const handleReorderSliderImages = async (draggedId: string, targetId: string) => {
+    const draggedIndex = sliderImages.findIndex(img => img.id === draggedId);
+    const targetIndex = sliderImages.findIndex(img => img.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    const reordered = [...sliderImages];
+    const [draggedImage] = reordered.splice(draggedIndex, 1);
+    reordered.splice(targetIndex, 0, draggedImage);
+
+    // Actualizar órdenes
+    const updatedImages = reordered.map((img, idx) => ({ ...img, order: idx }));
+
+    try {
+      await setDoc(doc(db, "settings", "sliderImages"), {
+        id: "sliderImages",
+        images: updatedImages,
+      }, { merge: true });
+    } catch (error) {
+      console.error("Error al reordenar imágenes del slider:", error);
+    }
   };
 
   // --- Crear ciudad ---
@@ -235,6 +397,237 @@ export default function AdminDashboardPage() {
                 <p className="pl-3 text-[11px] text-slate-500">{placesByCity[city.id]?.length || 0} puntos de venta</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* --- Sección de Imagen Promocional Global --- */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Imagen Promocional Global</p>
+            <p className="text-sm text-slate-700">Usa esta imagen para todos los lugares. Puedes cambiarla aquí y se actualizará en toda la web.</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {/* Vista previa de la imagen */}
+          {globalPromoImage && (
+            <div className="rounded-lg overflow-hidden border border-slate-200 bg-slate-50 p-2">
+              <img 
+                src={globalPromoImage} 
+                alt="Imagen promocional global" 
+                className="w-full h-auto max-h-60 object-cover rounded"
+              />
+              <p className="text-[11px] text-slate-500 mt-2">Vista previa de la imagen actual</p>
+            </div>
+          )}
+
+          {/* Subir desde dispositivo */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-slate-700">Subir imagen del dispositivo</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                setGlobalPromoImageFile(e.target.files?.[0] || null);
+                if (e.target.files?.[0]) {
+                  setGlobalPromoImage(""); // Limpiar URL si se selecciona archivo
+                }
+              }}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-samsungBlue focus:ring-2 focus:ring-samsungBlue/20"
+            />
+            <p className="text-[11px] text-slate-500">Recomendado: JPG, PNG. Máx 5MB</p>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="flex-1 h-px bg-slate-300"></div>
+            <span>O</span>
+            <div className="flex-1 h-px bg-slate-300"></div>
+          </div>
+
+          {/* Input de URL */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-slate-700">URL de la imagen promocional</label>
+            <input
+              type="url"
+              value={globalPromoImage}
+              onChange={(e) => {
+                setGlobalPromoImage(e.target.value);
+                if (e.target.value) {
+                  setGlobalPromoImageFile(null); // Limpiar archivo si se ingresa URL
+                }
+              }}
+              disabled={!!globalPromoImageFile}
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2 disabled:bg-slate-100 disabled:text-slate-400"
+              placeholder="https://ejemplo.com/imagen-global.png"
+            />
+            <p className="text-[11px] text-slate-500">
+              Esta imagen se mostrará en la vista pública al lado de los productos. Si un lugar tiene su propia imagen, esa tendrá prioridad.
+            </p>
+          </div>
+
+          {/* Botón guardar */}
+          <div className="flex justify-end pt-1">
+            <button 
+              onClick={handleSaveGlobalPromoImage}
+              disabled={globalPromoImageLoading || (!globalPromoImage.trim() && !globalPromoImageFile)}
+              className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {globalPromoImageLoading ? "Guardando..." : "Guardar imagen global"}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* --- Sección de Imágenes del Slider --- */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Imágenes del Slider Principal</p>
+            <p className="text-sm text-slate-700">Gestiona las imágenes que se muestran en el carousel de la página principal.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Formulario para agregar/editar */}
+          <div className="space-y-3 border border-slate-200 rounded-lg p-4 bg-slate-50">
+            <h3 className="text-sm font-semibold text-slate-900">
+              {editingSliderImageId ? "Editar imagen" : "Agregar nueva imagen"}
+            </h3>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-700">Subir imagen del dispositivo</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  setNewSliderImageFile(e.target.files?.[0] || null);
+                  if (e.target.files?.[0]) {
+                    setNewSliderImageSrc(""); // Limpiar URL si se selecciona archivo
+                  }
+                }}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-samsungBlue focus:ring-2 focus:ring-samsungBlue/20"
+              />
+              <p className="text-[11px] text-slate-500">Recomendado: JPG, PNG. Máx 5MB</p>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex-1 h-px bg-slate-300"></div>
+              <span>O</span>
+              <div className="flex-1 h-px bg-slate-300"></div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-700">URL de la imagen</label>
+              <input
+                type="url"
+                value={newSliderImageSrc}
+                onChange={(e) => {
+                  setNewSliderImageSrc(e.target.value);
+                  if (e.target.value) {
+                    setNewSliderImageFile(null); // Limpiar archivo si se ingresa URL
+                  }
+                }}
+                disabled={!!newSliderImageFile}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2 disabled:bg-slate-100 disabled:text-slate-400"
+                placeholder="https://ejemplo.com/imagen.jpg"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-700">Texto alternativo (alt)</label>
+              <input
+                type="text"
+                value={newSliderImageAlt}
+                onChange={(e) => setNewSliderImageAlt(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
+                placeholder="Descripción de la promoción"
+              />
+              <p className="text-[11px] text-slate-500">Se usa para SEO y accesibilidad.</p>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              {editingSliderImageId && (
+                <button
+                  onClick={() => {
+                    setNewSliderImageSrc("");
+                    setNewSliderImageAlt("");
+                    setNewSliderImageFile(null);
+                    setEditingSliderImageId(null);
+                  }}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                >
+                  Cancelar
+                </button>
+              )}
+              <button
+                onClick={handleSaveSliderImage}
+                disabled={sliderImageLoading || (!newSliderImageSrc.trim() && !newSliderImageFile) || !newSliderImageAlt.trim()}
+                className="btn-primary px-4 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sliderImageLoading ? "Guardando..." : editingSliderImageId ? "Actualizar" : "Agregar"}
+              </button>
+            </div>
+          </div>
+
+          {/* Lista de imágenes */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-slate-900">Imágenes del carousel ({sliderImages.length})</h3>
+            <div className="max-h-96 space-y-2 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
+              {sliderImages.length === 0 && (
+                <p className="text-xs text-slate-500 p-2">Aún no hay imágenes en el slider.</p>
+              )}
+              {sliderImages.map((image, idx) => (
+                <div
+                  key={image.id}
+                  draggable
+                  onDragStart={(e) => e.dataTransfer?.setData("sliderImageId", image.id)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const draggedId = e.dataTransfer?.getData("sliderImageId");
+                    if (draggedId && draggedId !== image.id) {
+                      handleReorderSliderImages(draggedId, image.id);
+                    }
+                  }}
+                  className="rounded-lg border border-slate-200 bg-white p-2 cursor-move hover:border-samsungBlue/60 transition"
+                >
+                  <div className="flex gap-2 items-start">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-500">#{idx + 1}</span>
+                        <img
+                          src={image.src}
+                          alt={image.alt}
+                          className="w-16 h-10 object-cover rounded"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-700 mt-1 truncate">{image.alt}</p>
+                      <p className="text-[10px] text-slate-500 truncate">{image.src}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          setEditingSliderImageId(image.id);
+                          setNewSliderImageSrc(image.src);
+                          setNewSliderImageAlt(image.alt);
+                        }}
+                        className="px-2 py-1 text-xs rounded bg-samsungBlue text-white hover:bg-samsungBlue/80"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSliderImage(image.id)}
+                        className="px-2 py-1 text-xs rounded bg-red-500 text-white hover:bg-red-600"
+                      >
+                        Del
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
