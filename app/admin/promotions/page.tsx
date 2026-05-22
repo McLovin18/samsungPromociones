@@ -5,7 +5,10 @@ import { getDoc, setDoc } from "firebase/firestore";
 
 import { DragEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, updateDoc, where, writeBatch } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db } from "@/lib/firebase";
+import { resolveImageUrl } from "@/lib/image-url";
+import { storage } from "@/lib/firebase";
 
 interface Place {
   id: string;
@@ -102,6 +105,7 @@ export default function AdminPromotionsPage() {
   const [previousPrice, setPreviousPrice] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const [imageUrl, setImageUrl] = useState("");
+  const [promotionImageFile, setPromotionImageFile] = useState<File | null>(null);
   const [editingPromotionId, setEditingPromotionId] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const normalizingPlaceIdRef = useRef<string | null>(null);
@@ -167,6 +171,7 @@ export default function AdminPromotionsPage() {
     setTitle("");
     setPreviousPrice("");
     setImageUrl("");
+    setPromotionImageFile(null);
     setPromoModalOpen(true);
   };
 
@@ -176,12 +181,20 @@ export default function AdminPromotionsPage() {
     const numericPreviousPrice = Number(previousPrice.replace(",", "."));
     const numericPrice = Number(price.replace(",", "."));
 
+    let finalImageUrl = imageUrl.trim();
+    if (promotionImageFile) {
+      const fileName = `promotion_${Date.now()}_${promotionImageFile.name}`;
+      const storageRef = ref(storage, `promotion-images/${fileName}`);
+      await uploadBytes(storageRef, promotionImageFile);
+      finalImageUrl = await getDownloadURL(storageRef);
+    }
+
     const payload = {
       sku: sku.trim(),
       title: title.trim(),
       originalPrice: Number.isNaN(numericPreviousPrice) ? null : numericPreviousPrice,
       price: Number.isNaN(numericPrice) ? null : numericPrice,
-      imageUrl: imageUrl.trim(),
+      imageUrl: finalImageUrl,
       placeId: selectedPlace.id,
       placeName: selectedPlace.name,
       cityId: selectedPlace.cityId,
@@ -209,6 +222,7 @@ export default function AdminPromotionsPage() {
     setPreviousPrice("");
     setPrice("");
     setImageUrl("");
+    setPromotionImageFile(null);
     setEditingPromotionId(null);
   };
 
@@ -227,6 +241,7 @@ export default function AdminPromotionsPage() {
         : ""
     );
     setImageUrl(promo.imageUrl || "");
+    setPromotionImageFile(null);
   };
 
   const handleDeletePromotion = async (promo: Promotion) => {
@@ -242,6 +257,7 @@ export default function AdminPromotionsPage() {
       setPreviousPrice("");
       setPrice("");
       setImageUrl("");
+      setPromotionImageFile(null);
     }
   };
 
@@ -345,6 +361,8 @@ export default function AdminPromotionsPage() {
           setPrice={setPrice}
           imageUrl={imageUrl}
           setImageUrl={setImageUrl}
+          promotionImageFile={promotionImageFile}
+          setPromotionImageFile={setPromotionImageFile}
           editingPromotionId={editingPromotionId}
           isSavingOrder={isSavingOrder}
           onReorder={handleReorderPromotions}
@@ -369,6 +387,8 @@ function PromoModal({
   setPrice,
   imageUrl,
   setImageUrl,
+  promotionImageFile,
+  setPromotionImageFile,
   editingPromotionId,
   isSavingOrder,
   onReorder,
@@ -389,6 +409,8 @@ function PromoModal({
   setPrice: (v: string) => void;
   imageUrl: string;
   setImageUrl: (v: string) => void;
+  promotionImageFile: File | null;
+  setPromotionImageFile: (v: File | null) => void;
   editingPromotionId: string | null;
   isSavingOrder: boolean;
   onReorder: (draggedId: string, targetId: string | null) => Promise<void>;
@@ -397,6 +419,7 @@ function PromoModal({
 }) {
   const [draggedPromotionId, setDraggedPromotionId] = useState<string | null>(null);
   const [dragOverPromotionId, setDragOverPromotionId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDragStart = (event: DragEvent<HTMLElement>, promotionId: string) => {
     setDraggedPromotionId(promotionId);
@@ -513,6 +536,33 @@ function PromoModal({
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 outline-none ring-samsungBlue/20 focus:border-samsungBlue focus:bg-white focus:ring-2"
                 placeholder="https://…/promo.jpg"
               />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-2 inline-flex items-center justify-center rounded-lg border border-samsungBlue/40 bg-samsungBlue/10 px-3 py-2 text-[11px] font-semibold text-samsungBlue hover:bg-samsungBlue/15"
+              >
+                Subir desde el dispositivo
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setPromotionImageFile(file);
+                  if (file) {
+                    setImageUrl("");
+                  }
+                }}
+              />
+              {promotionImageFile ? (
+                <p className="text-[10px] text-slate-500">Archivo seleccionado: {promotionImageFile.name}</p>
+              ) : (
+                <p className="text-[10px] text-slate-500">
+                  También puedes pegar un enlace si prefieres.
+                </p>
+              )}
             </div>
             <button type="submit" className="btn-primary mt-1 w-full justify-center text-xs">
               {editingPromotionId ? "Actualizar promoción" : "Guardar promoción"}
@@ -551,11 +601,12 @@ function PromoModal({
                 } ${dragOverPromotionId === promo.id ? "border-samsungBlue ring-2 ring-samsungBlue/20" : ""}`}
               >
                 <div className="hidden h-16 w-16 flex-none overflow-hidden rounded-lg bg-slate-200 sm:block">
-                  {promo.imageUrl && (
+                  {resolveImageUrl(promo.imageUrl) && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={promo.imageUrl}
+                      src={resolveImageUrl(promo.imageUrl)}
                       alt={promo.title}
+                      referrerPolicy="no-referrer"
                       className="h-full w-full object-cover"
                     />
                   )}

@@ -8,6 +8,7 @@ import { collection, getDocs, query, where, doc, getDoc } from "firebase/firesto
 import { db } from "@/lib/firebase";
 import PromoCarousel from "./components/PromoCarousel";
 import { useGlobalPromoImage } from "./components/GlobalPromoImage";
+import { resolveImageUrl } from "@/lib/image-url";
 
 // Hook para countdown
 function useCountdown(targetDate: Date) {
@@ -552,8 +553,9 @@ export default function HomePage() {
                     <div className="aspect-[4/3] w-full bg-slate-100 relative flex-shrink-0">
                       {promo.imageUrl && (
                         <img
-                          src={promo.imageUrl}
+                          src={resolveImageUrl(promo.imageUrl)}
                           alt={promo.title}
+                          referrerPolicy="no-referrer"
                           className="h-full w-full object-cover"
                         />
                       )}
